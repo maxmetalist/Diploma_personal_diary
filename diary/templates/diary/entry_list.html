@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1>Мои записи</h1>
+    </div>
+    <div class="col-md-4">
+        <form method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2"
+                   placeholder="Поиск по записям..." value="{{ request.GET.search }}">
+            <button type="submit" class="btn btn-outline-primary">Найти</button>
+        </form>
+    </div>
+</div>
+
+<hr>
+
+{% if entries %}
+    {% for entry in entries %}
+    <div class="card entry-card">
+        <div class="card-body">
+            <h5 class="card-title">{{ entry.title }}</h5>
+            <p class="card-text">{{ entry.content|truncatewords:30 }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ entry.created_at|date:"d.m.Y H:i" }}</small>
+                <div>
+                    <a href="{% url 'diary:entry_detail' entry.pk %}" class="btn btn-sm btn-outline-primary">Читать</a>
+                    <a href="{% url 'diary:entry_update' entry.pk %}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav>
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Назад</a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Вперед</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% else %}
+    <div class="text-center py-5">
+        <h3>Записей пока нет</h3>
+        <p class="text-muted">Напиши свою чушь в дневнике</p>
+        <a href="{% url 'diary:entry_create' %}" class="btn btn-primary btn-lg">Создать первую запись</a>
+    </div>
+{% endif %}
+{% endblock %}

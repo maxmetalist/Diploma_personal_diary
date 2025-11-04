@@ -1,0 +1,13 @@
+body {
+       .navbar-brand { font-weight: bold; }
+        .entry-card { margin-bottom: 20px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .logout-form { display: inline; }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,.55);
+            padding: 0.5rem 1rem;
+        }
+        .logout-btn:hover { color: rgba(255,255,255,.75); }
+}
