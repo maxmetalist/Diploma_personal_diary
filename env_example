@@ -1,0 +1,9 @@
+# django setiings
+SECRET_KEY=your_long_like_fucking_life_django_secure_secret_key
+
+# database settings
+DATABASE_NAME=your_database_name
+DATABASE_USER=your_database_user
+DATABASE_PASSWORD=your_database_pass
+DATABASE_HOST=your_database_host (localhost in default)
+DATABASE_PORT=your_database_port (5432 in default)
