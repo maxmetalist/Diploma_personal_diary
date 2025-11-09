@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "users",
     "diary",
+    "alarm",
+    "planner",
     "phonenumber_field",
     "django_filters",
     "rest_framework_simplejwt",
@@ -96,8 +98,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    os.path.join(BASE_DIR, 'static'),
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -112,3 +115,6 @@ LOGIN_URL = 'users:login'
 
 # Phone number settings
 PHONENUMBER_DEFAULT_REGION = 'RU'
+
+# Content load settings
+SECURE_CONTENT_TYPE_NOSNIFF = False

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление задачи - Личные записульки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">🗑️ Удаление задачи</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Внимание!</h5>
+                        <p class="mb-0">Вы собираетесь удалить задачу. Это действие нельзя отменить.</p>
+                    </div>
+
+                    <div class="task-preview mb-4 p-3 border rounded">
+                        <h5>{{ task.title }}</h5>
+                        {% if task.description %}
+                        <p class="text-muted mb-2">{{ task.description|truncatewords:20 }}</p>
+                        {% endif %}
+                        <div class="small text-muted">
+                            <strong>Приоритет:</strong> {{ task.get_priority_display }}<br>
+                            <strong>Статус:</strong> {{ task.get_status_display }}<br>
+                            {% if task.due_date %}
+                            <strong>Дедлайн:</strong> {{ task.due_date|date:"d.m.Y H:i" }}<br>
+                            {% endif %}
+                            <strong>Создана:</strong> {{ task.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger flex-fill">
+                                🗑️ Да, удалить
+                            </button>
+                            <a href="{% url 'planner:task_list' %}" class="btn btn-secondary flex-fill">
+                                ↩️ Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

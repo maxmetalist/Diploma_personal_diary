@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Личные записульки{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<style>
+    #calendar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 600px;
+    }
+
+    .fc .fc-toolbar-title {
+        color: #333 !important;
+        font-weight: 600 !important;
+        font-size: 1.5em !important;
+    }
+
+    .fc .fc-button {
+        background: #0d6efd !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+    }
+
+    .fc .fc-button:hover {
+        background: #0b5ed7 !important;
+        transform: translateY(-1px);
+    }
+
+    .fc .fc-button:active {
+        background: #0a58ca !important;
+    }
+
+    .fc .fc-day-today {
+        background-color: rgba(255, 193, 7, 0.2) !important;
+    }
+
+    .fc .fc-day-today .fc-daygrid-day-number {
+        color: #fd7e14 !important;
+        font-weight: bold !important;
+    }
+
+    .fc-event {
+        cursor: pointer !important;
+        border-radius: 6px !important;
+        border: none !important;
+        font-size: 0.85em !important;
+        padding: 4px 6px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+
+    .fc-event:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .task-priority-high {
+        background: linear-gradient(135deg, #dc3545, #c82333) !important;
+        color: white !important;
+        border-left: 3px solid #a71e2a !important;
+    }
+
+    .task-priority-medium {
+        background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+        color: black !important;
+        border-left: 3px solid #d39e00 !important;
+    }
+
+    .task-priority-low {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
+        color: white !important;
+        border-left: 3px solid #0a58ca !important;
+    }
+
+    .fc-daygrid-day:hover {
+        background-color: rgba(13, 110, 253, 0.05) !important;
+    }
+
+    .task-list-item {
+        border-left: 4px solid;
+        margin-bottom: 12px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .task-list-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .border-left-high { border-left-color: #dc3545 !important; }
+    .border-left-medium { border-left-color: #ffc107 !important; }
+    .border-left-low { border-left-color: #0d6efd !important; }
+
+    .fc-event-content {
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .priority-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .priority-high { background: #dc3545; }
+    .priority-medium { background: #ffc107; }
+    .priority-low { background: #0d6efd; }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>📅 {{ title }}</h1>
+                    <p class="text-muted mb-0">Нажмите на дату для просмотра задач или создайте новую задачу</p>
+                </div>
+                <div>
+                    <a href="{% url 'planner:task_list' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-list me-1"></i>Все задачи
+                    </a>
+                    <a href="{% url 'planner:task_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Новая задача
+                    </a>
+                </div>
+            </div>
+
+            <!-- Модальное окно для задач дня -->
+            <div class="modal fade" id="dayTasksModal" tabindex="-1" aria-labelledby="dayTasksModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="dayTasksModalLabel">
+                                <i class="fas fa-calendar-day me-2"></i>Задачи на <span id="modalDate"></span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="dayTasksModalBody">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-3"></div>
+                                <p class="text-muted">Загружаем задачи...</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                            <a href="#" id="createTaskLink" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Создать задачу
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="calendar">
+                        <div class="text-center py-5" id="calendarFallback">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                            <p class="text-muted">Загружаем календарь...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ru.js"></script>
+
+<script>
+let calendarInstance = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== ИНИЦИАЛИЗАЦИЯ КАЛЕНДАРЯ ===');
+    initializeCalendar();
+});
+
+function initializeCalendar() {
+    const calendarEl = document.getElementById('calendar');
+
+    if (!calendarEl) {
+        showError('Элемент календаря не найден');
+        return;
+    }
+
+    if (typeof FullCalendar === 'undefined') {
+        showError('Библиотека FullCalendar не загружена');
+        return;
+    }
+
+    try {
+        const fallback = document.getElementById('calendarFallback');
+        if (fallback) fallback.innerHTML = '<p>Инициализация календаря...</p>';
+
+        let eventsData = [];
+        try {
+            eventsData = {{ calendar_events|safe }};
+            console.log('Событий для календаря:', eventsData.length);
+        } catch (e) {
+            console.error('Ошибка в данных events:', e);
+            eventsData = [];
+        }
+
+        const calendarConfig = {
+            initialView: 'dayGridMonth',
+            locale: 'ru',
+            firstDay: 1,
+            height: 'auto',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'Сегодня',
+                month: 'Месяц',
+                week: 'Неделя',
+                day: 'День'
+            },
+            events: eventsData,
+            navLinks: true,
+            editable: false,
+            selectable: true,
+            dayMaxEvents: 3,
+            showNonCurrentDates: true,
+            fixedWeekCount: false,
+
+            eventClick: function(info) {
+                console.log('Клик по событию:', info.event);
+                info.jsEvent.preventDefault();
+
+                // Анимация клика
+                info.el.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    info.el.style.transform = 'scale(1)';
+                }, 150);
+
+                if (info.event.url && info.event.url !== '#') {
+                    window.location.href = info.event.url;
+                } else {
+                    // Показываем информацию о задаче в модальном окне
+                    showTaskDetails(info.event);
+                }
+            },
+
+            dateClick: function(info) {
+                console.log('Клик по дате:', info.dateStr);
+
+                // Анимация клика
+                info.dayEl.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    info.dayEl.style.transform = 'scale(1)';
+                    showDayTasks(info.dateStr);
+                }, 150);
+            },
+
+            eventDidMount: function(info) {
+                const priority = info.event.extendedProps.priority;
+                if (priority) {
+                    info.el.classList.add('task-priority-' + priority);
+                }
+
+                // Добавляем иконку приоритета
+                let icon = '';
+                if (priority === 'high') icon = '🔴';
+                else if (priority === 'medium') icon = '🟡';
+                else if (priority === 'low') icon = '🔵';
+
+                if (icon && info.el.querySelector('.fc-event-title')) {
+                    const titleEl = info.el.querySelector('.fc-event-title');
+                    titleEl.innerHTML = `<span class="fc-event-content">${icon} ${info.event.title}</span>`;
+                }
+            },
+
+            datesSet: function(info) {
+                console.log('Диапазон дат:', info.start, info.end);
+                hideSpinner();
+            },
+
+            loading: function(isLoading) {
+                if (!isLoading) {
+                    hideSpinner();
+                }
+            }
+        };
+
+        calendarInstance = new FullCalendar.Calendar(calendarEl, calendarConfig);
+        calendarInstance.render();
+
+        console.log('✅ Календарь успешно инициализирован');
+        setTimeout(hideSpinner, 1000);
+
+    } catch (error) {
+        console.error('❌ Ошибка инициализации календаря:', error);
+        showError('Ошибка создания календаря: ' + error.message);
+    }
+}
+
+function hideSpinner() {
+    const fallback = document.getElementById('calendarFallback');
+    if (fallback) {
+        console.log('🔄 Скрытие спиннера');
+        fallback.style.display = 'none';
+        console.log('✅ Спиннер скрыт');
+    }
+}
+
+function showDayTasks(dateStr) {
+    console.log('🔄 Начало анимации показа задач');
+    console.log('Показ задач для даты:', dateStr);
+
+    const modal = new bootstrap.Modal(document.getElementById('dayTasksModal'));
+    const modalDateEl = document.getElementById('modalDate');
+    const modalBody = document.getElementById('dayTasksModalBody');
+    const createTaskLink = document.getElementById('createTaskLink');
+
+    // Форматируем дату
+    const date = new Date(dateStr);
+    const formattedDate = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    modalDateEl.textContent = formattedDate;
+
+    // Обновляем ссылку для создания задачи
+    createTaskLink.href = `/planner/task/create/?due_date=${dateStr}`;
+
+    // Показываем спиннер загрузки
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3"></div>
+            <p class="text-muted">Загружаем задачи...</p>
+        </div>
+    `;
+
+    modal.show();
+
+    // AJAX запрос для получения задач
+    fetch(`/planner/api/tasks-by-date/?date=${dateStr}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Ошибка сети');
+            return response.json();
+        })
+        .then(data => {
+            if (data.tasks && data.tasks.length > 0) {
+                let tasksHtml = `
+                    <div class="mb-3">
+                        <strong><i class="fas fa-tasks me-2"></i>Найдено задач: ${data.tasks.length}</strong>
+                    </div>
+                `;
+
+                data.tasks.forEach((task, index) => {
+                    const dueTime = task.due_date ? new Date(task.due_date).toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '';
+
+                    tasksHtml += `
+                        <div class="task-list-item border-left-${task.priority}" style="animation-delay: ${index * 0.1}s">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold">${escapeHtml(task.title)}</h6>
+                                    ${task.description ? `<p class="text-muted small mb-2">${escapeHtml(task.description)}</p>` : ''}
+                                    <div class="small">
+                                        <span class="badge bg-${getPriorityClass(task.priority)} me-2">
+                                            ${task.priority_display}
+                                        </span>
+                                        <span class="badge bg-${getStatusClass(task.status)} me-2">
+                                            ${task.status_display}
+                                        </span>
+                                        ${dueTime ? `<span class="text-muted"><i class="fas fa-clock me-1"></i>${dueTime}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <a href="/planner/task/${task.id}/edit/" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                modalBody.innerHTML = tasksHtml;
+            } else {
+                modalBody.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-day fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted mb-3">На эту дату задач нет</h5>
+                        <p class="text-muted">Создайте новую задачу с дедлайном на эту дату</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки задач:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Ошибка при загрузке задач</h5>
+                    <p class="mb-0">Попробуйте обновить страницу</p>
+                </div>
+            `;
+        });
+}
+
+function showTaskDetails(event) {
+    // Показываем детали задачи в модальном окне
+    const modal = new bootstrap.Modal(document.getElementById('dayTasksModal'));
+    const modalDateEl = document.getElementById('modalDate');
+    const modalBody = document.getElementById('dayTasksModalBody');
+    const createTaskLink = document.getElementById('createTaskLink');
+
+    modalDateEl.textContent = 'Детали задачи';
+    createTaskLink.href = `/planner/task/${event.id}/edit/`;
+    createTaskLink.innerHTML = '<i class="fas fa-edit me-1"></i>Редактировать';
+
+    const eventDate = event.start ? new Date(event.start).toLocaleDateString('ru-RU') : 'Не указана';
+
+    modalBody.innerHTML = `
+        <div class="task-details">
+            <h5 class="mb-3">${escapeHtml(event.title)}</h5>
+            <div class="mb-3">
+                <strong>Дата выполнения:</strong> ${eventDate}
+            </div>
+            <div class="mb-3">
+                <strong>Приоритет:</strong>
+                <span class="badge bg-${getPriorityClass(event.extendedProps.priority)}">
+                    ${getPriorityDisplay(event.extendedProps.priority)}
+                </span>
+            </div>
+            ${event.extendedProps.description ? `
+                <div class="mb-3">
+                    <strong>Описание:</strong>
+                    <p class="mt-1">${escapeHtml(event.extendedProps.description)}</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    modal.show();
+}
+
+// Вспомогательные функции
+function getPriorityClass(priority) {
+    const classes = { 'high': 'danger', 'medium': 'warning', 'low': 'primary' };
+    return classes[priority] || 'secondary';
+}
+
+function getStatusClass(status) {
+    const classes = { 'done': 'success', 'in_progress': 'primary', 'todo': 'secondary' };
+    return classes[status] || 'secondary';
+}
+
+function getPriorityDisplay(priority) {
+    const displays = { 'high': 'Высокий', 'medium': 'Средний', 'low': 'Низкий' };
+    return displays[priority] || 'Не указан';
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function showError(message) {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+        calendarEl.innerHTML = `
+            <div class="alert alert-danger">
+                <h4>❌ Ошибка календаря</h4>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="btn btn-primary">Обновить страницу</button>
+                <button onclick="initializeCalendar()" class="btn btn-outline-primary">Повторить инициализацию</button>
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

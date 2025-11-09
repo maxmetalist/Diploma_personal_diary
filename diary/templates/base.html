@@ -1,18 +1,120 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru">
+<html lang="ru" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Личные записульки{% endblock %}</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'style.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Боковая панель -->
+    <div class="side-panel">
+        <div class="panel-tab">☰</div>
+
+        <div class="panel-content">
+            <div class="user-profile-section text-center mb-4">
+                <div class="avatar-container position-relative d-inline-block">
+                    {% if user.is_authenticated and user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="Аватар" class="user-avatar-sidebar">
+                    {% else %}
+                        <div class="user-avatar-sidebar default-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <div class="online-indicator" title="В сети"></div>
+                    {% else %}
+                        <div class="offline-indicator" title="Не в сети"></div>
+                    {% endif %}
+                </div>
+                {% if user.is_authenticated %}
+                    <h6 class="user-name mt-2 mb-1">{{ user.first_name }} {{ user.last_name }}</h6>
+                    <p class="user-email small text-white-50">{{ user.email }}</p>
+                    <div class="online-status">
+                        <span class="status-dot online"></span>
+                        <small class="status-text">В сети</small>
+                    </div>
+                {% else %}
+                    <h6 class="user-name mt-2 mb-1">Гость</h6>
+                    <p class="user-email small text-white-50">Войдите в аккаунт</p>
+                    <div class="online-status">
+                        <span class="status-dot offline"></span>
+                        <small class="status-text">Не в сети</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <h5 class="mb-3 border-bottom pb-2">Навигация</h5>
+
+            <button class="panel-btn" data-page="home">
+                🏠 Домашняя
+            </button>
+
+            <button class="panel-btn" data-page="diary">
+                📖 Дневник
+            </button>
+
+            <button class="panel-btn" data-page="planning">
+                📅 Планинг
+            </button>
+
+            <button class="panel-btn" data-page="alarm_clock">
+                ⏰ Будильник
+            </button>
+
+            <div class="theme-switcher-section mt-4 pt-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="theme-label">Тема:</span>
+                    <div class="theme-switcher">
+                        <button class="theme-btn theme-light active" data-theme="light" title="Светлая тема">
+                            <i class="fas fa-sun"></i>
+                        </button>
+                        <button class="theme-btn theme-dark" data-theme="dark" title="Тёмная тема">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-footer">
+            <button class="panel-btn" id="accountMenuBtn">
+                👤 Аккаунт
+            </button>
+
+            <div class="account-menu" id="accountMenu">
+                {% if user.is_authenticated %}
+                    <span class="text-white small p-2 d-block">
+                        Привет, {{ user.first_name }}!
+                    </span>
+                    <a href="{% url 'users:profile_edit' %}" class="account-btn text-decoration-none d-block">
+                        ✏️ Редактировать
+                    </a>
+                    <form method="post" action="{% url 'users:logout' %}" class="d-block">
+                        {% csrf_token %}
+                        <button type="submit" class="account-btn w-100 text-start">
+                            🚪 Выйти
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="account-btn text-decoration-none d-block">
+                        🔑 Войти
+                    </a>
+                    <a href="{% url 'users:signup' %}" class="account-btn text-decoration-none d-block">
+                        📝 Регистрация
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'diary:entry_list' %}">📖 Мой Дневник</a>
-
+            <a class="navbar-brand" href="{% url 'home' %}">📖 Мой Дневник</a>
             <div class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     <span class="navbar-text me-3">
@@ -46,5 +148,104 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Все функции объявлены глобально
+        window.toggleAccountMenu = function() {
+            const menu = document.getElementById('accountMenu');
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        };
+
+        window.navigateTo = function(page) {
+            const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
+            if (page === 'home') {
+                window.location.href = "{% url 'home' %}";
+                return;
+            }
+
+            if (!isAuthenticated) {
+                window.location.href = "{% url 'users:login' %}";
+                return;
+            }
+
+            const urls = {
+                'diary': "{% url 'diary:entry_list' %}",
+                'planning': "{% url 'planner:planning' %}",
+                'alarm_clock': "{% url 'alarm:alarm_clock' %}"
+            };
+
+            if (urls[page]) {
+                window.location.href = urls[page];
+            }
+        };
+
+        // Функции для темы
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeButtons(theme);
+        }
+
+        function updateThemeButtons(theme) {
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-theme') === theme) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка темы
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+
+            // Обработчики для кнопок темы
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+
+            // Обработчики для навигационных кнопок
+            document.querySelectorAll('.panel-btn[data-page]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    navigateTo(page);
+                });
+            });
+
+            // Обработчик для кнопки аккаунта
+            const accountMenuBtn = document.getElementById('accountMenuBtn');
+            if (accountMenuBtn) {
+                accountMenuBtn.addEventListener('click', toggleAccountMenu);
+            }
+
+            // Закрытие меню при клике вне его
+            document.addEventListener('click', function(event) {
+                const accountMenu = document.getElementById('accountMenu');
+                const accountBtn = document.getElementById('accountMenuBtn');
+
+                if (accountMenu && accountMenu.classList.contains('show')) {
+                    if (!accountMenu.contains(event.target) && !accountBtn.contains(event.target)) {
+                        accountMenu.classList.remove('show');
+                    }
+                }
+            });
+
+            // Анимация онлайн-статуса
+            const onlineIndicator = document.querySelector('.online-indicator');
+            if (onlineIndicator) {
+                setInterval(() => {
+                    onlineIndicator.classList.toggle('pulse');
+                }, 2000);
+            }
+        });
+    </script>
 </body>
 </html>
