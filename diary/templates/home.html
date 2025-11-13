@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <div class="animation-scene">
+        <!-- Записная книжка -->
+        <div class="notebook">
+          <div class="notebook-cover">
+            <span>Мой Дневник</span>
+          </div>
+          <div class="notebook-pages">
+            <div class="notebook-page"></div>
+          </div>
+        </div>
+
+        <!-- Ручка -->
+        <div class="pen">
+          <div class="pen-body"></div>
+            <div class="pen-nib"></div>
+            <div class="pen-cap"></div>
+        </div>
+
+        <!-- Будильник -->
+        <div class="alarm-clock">
+          <div class="clock-body">
+            <div class="clock-face">
+              <div class="clock-center"></div>
+              <div class="hand hour-hand"></div>
+              <div class="hand minute-hand"></div>
+            </div>
+            <div class="alarm-bell left-bell"></div>
+            <div class="alarm-bell right-bell"></div>
+            <div class="clock-stand"></div>
+          </div>
+        </div>
+
+        <!-- Текст -->
+        <div class="writing-text">Привет, мой дорогой дневник!</div>
+    </div>
+
+    <div class="welcome-text">
+        <h1>Добро пожаловать в ваш личный дневник!</h1>
+        <p class="lead">Записывайте мысли, планируйте дела и не проспите важные события</p>
+
+        {% if not user.is_authenticated %}
+        <div class="mt-4">
+            <a href="{% url 'users:signup' %}" class="btn btn-primary btn-lg me-3">Начать сейчас</a>
+            <a href="{% url 'users:login' %}" class="btn btn-outline-primary btn-lg">Войти</a>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            <a href="{% url 'diary:entry_list' %}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-book me-2"></i>Перейти к дневнику
+        </a>
+        <a href="{% url 'diary:entry_create' %}" class="btn btn-outline-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Создать запись
+        </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

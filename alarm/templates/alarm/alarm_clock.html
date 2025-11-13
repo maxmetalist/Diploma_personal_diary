@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Личные записульки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h1>⏰ {{ title }}</h1>
+            <p class="lead">{{ page_description }}</p>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Управление будильниками</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'alarm:alarm_create' %}" class="btn btn-primary w-100">
+                                ➕ Создать будильник
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'alarm:alarm_list' %}" class="btn btn-outline-primary w-100">
+                                📋 Мои будильники
+                            </a>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <p>Функционал будильника в разработке...</p>
+                    <p>Скоро здесь появятся:</p>
+                    <ul>
+                        <li>Установка и настройка будильников</li>
+                        <li>Повторяющиеся напоминания</li>
+                        <li>Таймеры и секундомер</li>
+                        <li>Голосовые уведомления</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
