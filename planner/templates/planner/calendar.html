@@ -232,11 +232,25 @@ function initializeCalendar() {
             },
             events: eventsData,
             navLinks: true,
-            editable: false,
+            editable: true,
             selectable: true,
             dayMaxEvents: 3,
             showNonCurrentDates: true,
             fixedWeekCount: false,
+
+            // Обработка перетаскивания
+            eventDrop: function(info) {
+                console.log('🔄 Событие перемещено:', info.event);
+                console.log('Старая дата:', info.oldEvent.start);
+                console.log('Новая дата:', info.event.start);
+
+                updateTaskDate(info.event, info.revert);
+            },
+
+            eventResize: function(info) {
+                console.log('📅 Длительность события изменена:', info.event);
+                updateTaskDate(info.event, info.revert);
+            },
 
             eventClick: function(info) {
                 console.log('Клик по событию:', info.event);
@@ -273,6 +287,9 @@ function initializeCalendar() {
                     info.el.classList.add('task-priority-' + priority);
                 }
 
+                // Добавляем курсор перетаскивания
+                info.el.style.cursor = 'grab';
+
                 // Добавляем иконку приоритета
                 let icon = '';
                 if (priority === 'high') icon = '🔴';
@@ -283,6 +300,20 @@ function initializeCalendar() {
                     const titleEl = info.el.querySelector('.fc-event-title');
                     titleEl.innerHTML = `<span class="fc-event-content">${icon} ${info.event.title}</span>`;
                 }
+            },
+
+            // Обработка начала перетаскивения
+            eventDragStart: function(info) {
+                console.log('🎬 Начало перетаскивания:', info.event.title);
+                info.el.style.cursor = 'grabbing';
+                info.el.style.opacity = '0.7';
+            },
+
+            // Обработка конца перетаскивания
+            eventDragStop: function(info) {
+                console.log('🏁 Конец перетаскивания:', info.event.title);
+                info.el.style.cursor = 'grab';
+                info.el.style.opacity = '1';
             },
 
             datesSet: function(info) {
@@ -307,6 +338,165 @@ function initializeCalendar() {
         console.error('❌ Ошибка инициализации календаря:', error);
         showError('Ошибка создания календаря: ' + error.message);
     }
+}
+
+// НОВАЯ ФУНКЦИЯ: ОБНОВЛЕНИЕ ДАТЫ ЗАДАЧИ
+function updateTaskDate(event, revertFunction) {
+    console.log('🔄 Обновление даты задачи...');
+
+    const taskId = event.id;
+    const newDate = event.startStr; // Новая дата в формате ISO
+    const oldDate = event.oldEvent ? event.oldEvent.startStr : 'неизвестно';
+
+    console.log(`Задача ${taskId}: ${oldDate} → ${newDate}`);
+
+    // Показываем уведомление о начале обновления
+    showNotification('Обновляем дату задачи...', 'info', 2000);
+
+    // Отправляем запрос на сервер
+    fetch(`/planner/calendar/update-date/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify({
+            due_date: newDate,
+            old_date: oldDate
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Дата задачи успешно обновлена');
+            showNotification('Дата задачи обновлена!', 'success', 3000);
+
+            // Обновляем цвет события если вернулся новый цвет
+            if (data.color && event.setProp) {
+                event.setProp('color', data.color);
+                console.log('🎨 Цвет события обновлен:', data.color);
+            }
+
+            // Обновляем URL если нужно
+            if (data.url && event.setProp) {
+                event.setProp('url', data.url);
+            }
+
+        } else {
+            console.error('❌ Ошибка обновления даты:', data.error);
+            showNotification('Ошибка: ' + data.error, 'error', 5000);
+            // Откатываем изменение в календаре
+            if (revertFunction) {
+                revertFunction();
+                console.log('↩️ Изменение откатано');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('❌ Ошибка сети:', error);
+        showNotification('Ошибка сети при обновлении даты', 'error', 5000);
+        // Откатываем изменение в календаре
+        if (revertFunction) {
+            revertFunction();
+            console.log('↩️ Изменение откатано из-за ошибки сети');
+        }
+    });
+}
+
+// НОВАЯ ФУНКЦИЯ: ПОЛУЧЕНИЕ CSRF ТОКЕНА
+function getCSRFToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        return csrfToken.value;
+    }
+
+    // Альтернативный способ получения токена
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+    if (cookieValue) {
+        return cookieValue;
+    }
+
+    console.error('❌ CSRF токен не найден');
+    showNotification('Ошибка безопасности', 'error');
+    return '';
+}
+
+// НОВАЯ ФУНКЦИЯ: ПОКАЗ УВЕДОМЛЕНИЙ
+function showNotification(message, type = 'info', duration = 5000) {
+    console.log(`📢 Уведомление [${type}]: ${message}`);
+
+    // Создаем контейнер для уведомлений если его нет
+    let container = document.getElementById('notifications-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notifications-container';
+        container.className = 'position-fixed top-0 end-0 p-3';
+        container.style.cssText = 'z-index: 1060; max-width: 350px;';
+        document.body.appendChild(container);
+    }
+
+    const notificationId = 'notification-' + Date.now();
+    const alertClass = {
+        'success': 'alert-success',
+        'error': 'alert-danger',
+        'warning': 'alert-warning',
+        'info': 'alert-info'
+    }[type] || 'alert-info';
+
+    const icon = {
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️',
+        'info': 'ℹ️'
+    }[type] || 'ℹ️';
+
+    const notificationHTML = `
+        <div id="${notificationId}" class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <span class="me-2">${icon}</span>
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', notificationHTML);
+
+    // Анимация появления
+    const notification = document.getElementById(notificationId);
+    if (notification) {
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        notification.style.transition = 'all 0.3s ease';
+
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 10);
+    }
+
+    // Автоматическое скрытие
+    if (duration > 0) {
+        setTimeout(() => {
+            const notification = document.getElementById(notificationId);
+            if (notification) {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+
+    return notificationId;
 }
 
 function hideSpinner() {

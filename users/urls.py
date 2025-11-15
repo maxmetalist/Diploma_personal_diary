@@ -1,7 +1,7 @@
 from django.urls import path
 from users.views import SignUpView, CustomLoginView, CustomLogoutView, ProfileEditView
 
-app_name = 'users'
+app_name = "users"
 
 urlpatterns = [
     path('signup/', SignUpView.as_view(template_name='users/registration/signup.html'), name='signup'),

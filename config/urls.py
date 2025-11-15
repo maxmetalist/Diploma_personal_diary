@@ -7,11 +7,11 @@ from django.views.generic import RedirectView
 from diary.views import home
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', home, name='home'),
-    path('diary/', include('diary.urls')),
-    path('catalog/', RedirectView.as_view(pattern_name='diary:home')),
-    path('planner/', include('planner.urls')),
-    path('alarm/', include('alarm.urls')),
-    path('accounts/', include('users.urls')),
+    path("admin/", admin.site.urls),
+    path("", home, name="home"),
+    path("diary/", include("diary.urls")),
+    path("catalog/", RedirectView.as_view(pattern_name="diary:home")),
+    path("planner/", include("planner.urls")),
+    path("alarm/", include("alarm.urls")),
+    path("accounts/", include("users.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

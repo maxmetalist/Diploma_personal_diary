@@ -1,6 +1,7 @@
 from django import forms
 from planner.models import Task
 
+
 class TaskForm(forms.ModelForm):
     # Поля для дней недели
     monday = forms.BooleanField(required=False, label='Пн')
@@ -24,20 +25,36 @@ class TaskForm(forms.ModelForm):
         fields = ['title', 'description', 'priority', 'status', 'due_date', 'is_recurring', 'recurrence_end_date', 'notification_setting',
             'custom_notification_time']
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Введите название задачи'
+            "title": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Введите название задачи"
             }),
-            'description': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Описание задачи (необязательно)'
+            "description": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Описание задачи (необязательно)"
             }),
-            'priority': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'due_date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'type': 'datetime-local'
+            "priority": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "due_date": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
+            }),
+            "is_recurring": forms.Select(attrs={
+                "class": "form-select",
+                "onchange": "toggleRecurrenceFields()"
+            }),
+            "recurrence_end_date": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
+            }),
+            "notification_setting": forms.Select(attrs={
+                "class": "form-select",
+                "onchange": "toggleNotificationFields()"
+            }),
+            "custom_notification_time": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
             }),
             "is_recurring": forms.Select(attrs={
                 "class": "form-select",

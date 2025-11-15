@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class DiaryEntry(models.Model):
     title = models.CharField('title', max_length=200)
     content = models.TextField('content')
@@ -22,15 +23,15 @@ class DiaryEntry(models.Model):
     )
 
     class Meta:
-        verbose_name = 'diary entry'
-        verbose_name_plural = 'diary entries'
-        ordering = ['-created_at']
+        verbose_name = "diary entry"
+        verbose_name_plural = "diary entries"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('diary:entry_detail', kwargs={'pk': self.pk})
+        return reverse("diary:entry_detail", kwargs={"pk": self.pk})
 
 
 class MediaFile(models.Model):
@@ -40,7 +41,7 @@ class MediaFile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user.email} - {self.file.name}"
