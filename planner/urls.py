@@ -14,7 +14,7 @@ urlpatterns = [
     path("task/<int:pk>/delete/", TaskDeleteView.as_view(), name="task_delete"),
     path("calendar/", CalendarView.as_view(), name="calendar"),
     # API endpoints
-    path("api/tasks-by-date/", tasks_by_date, name="tasks_by_date"),
+    path('api/tasks-by-date/', tasks_by_date, name='tasks_by_date'),
     path("calendar/update-date/<int:task_id>/", CalendarView.as_view(), name="calendar_update_date"),
     # Уведомления
     path('api/notifications/', NotificationView.as_view(), name='notifications_api'),

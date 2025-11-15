@@ -1040,3 +1040,44 @@
         padding: 8px 16px;
     }
 }
+
+.entry-thumbnails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.thumbnail-more {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.image-selection .form-check-input {
+    position: absolute;
+    margin-left: 0;
+    z-index: 1;
+}
+
+.image-selection .form-check-label {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.image-selection .form-check {
+    padding-left: 0;
+}
+
+.image-selection .form-check-label:hover {
+    opacity: 0.8;
+}
+
+.image-selection .form-check-input:checked + .form-check-label img {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}

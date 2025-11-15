@@ -96,6 +96,15 @@ class EntryDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return super().get_queryset().filter(author=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Добавляем отладочную информацию
+        entry = self.object
+        print(f"Запись: {entry.title}")
+        print(f"Изображения: {entry.images.all()}")
+        print(f"Количество изображений: {entry.images.count()}")
+        return context
+
 
 class EntryCreateView(LoginRequiredMixin, CreateView):
     model = DiaryEntry
@@ -103,9 +112,19 @@ class EntryCreateView(LoginRequiredMixin, CreateView):
     template_name = "diary/entry_form.html"
     success_url = reverse_lazy("diary:entry_list")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        # Сохраняем связь ManyToMany с изображениями
+        if form.cleaned_data['images']:
+            self.object.images.set(form.cleaned_data['images'])
+            print(f"Создана запись с {form.cleaned_data['images'].count()} изображениями")
+        return response
 
 
 class EntryUpdateView(LoginRequiredMixin, UpdateView):
@@ -116,6 +135,24 @@ class EntryUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return super().get_queryset().filter(author=self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        if self.request.method == 'GET':
+            kwargs.update({
+                'initial': {
+                    'images': self.object.images.all()
+                }
+            })
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # Обновляем связь с изображениями
+        self.object.images.set(form.cleaned_data['images'])
+        print(f"Обновлена запись с {form.cleaned_data['images'].count()} изображениями")
+        return response
 
     def get_success_url(self):
         return reverse_lazy("diary:entry_detail", kwargs={"pk": self.object.pk})

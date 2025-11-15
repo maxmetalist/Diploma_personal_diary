@@ -22,11 +22,8 @@ class TaskForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = [
-            "title", "description", "priority", "status", "due_date",
-            'is_recurring', 'recurrence_end_date', 'notification_setting',
-            'custom_notification_time'
-        ]
+        fields = ['title', 'description', 'priority', 'status', 'due_date', 'is_recurring', 'recurrence_end_date', 'notification_setting',
+            'custom_notification_time']
         widgets = {
             "title": forms.TextInput(attrs={
                 "class": "form-control",
@@ -59,13 +56,29 @@ class TaskForm(forms.ModelForm):
                 "class": "form-control",
                 "type": "datetime-local"
             }),
+            "is_recurring": forms.Select(attrs={
+                "class": "form-select",
+                "onchange": "toggleRecurrenceFields()"
+            }),
+            "recurrence_end_date": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
+            }),
+            "notification_setting": forms.Select(attrs={
+                "class": "form-select",
+                "onchange": "toggleNotificationFields()"
+            }),
+            "custom_notification_time": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
+            }),
         }
         labels = {
-            "title": "Название задачи",
-            "description": "Описание",
-            "priority": "Приоритет",
-            "status": "Статус",
-            "due_date": "Срок выполнения",
+            'title': 'Название задачи',
+            'description': 'Описание',
+            'priority': 'Приоритет',
+            'status': 'Статус',
+            'due_date': 'Срок выполнения',
             "is_recurring": "Повторение задачи",
             "recurrence_end_date": "Повторять до",
             "notification_setting": "Уведомление",
