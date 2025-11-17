@@ -1,6 +1,7 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.utils import timezone
+
 from planner.models import Notification, Task
 
 User = get_user_model()
@@ -11,37 +12,28 @@ class RealisticCustomUserTest(TestCase):
 
     def test_create_user_without_first_name(self):
         """Тест создания пользователя БЕЗ first_name (разрешено)"""
-        user = User.objects.create_user(
-            email='nofirst@example.com',
-            password='testpass123'
-        )
+        user = User.objects.create_user(email="nofirst@example.com", password="testpass123")
 
-        self.assertEqual(user.email, 'nofirst@example.com')
-        self.assertEqual(user.first_name, '')  # Пустая строка, а не ошибка
-        self.assertTrue(user.check_password('testpass123'))
+        self.assertEqual(user.email, "nofirst@example.com")
+        self.assertEqual(user.first_name, "")  # Пустая строка, а не ошибка
+        self.assertTrue(user.check_password("testpass123"))
 
     def test_create_user_with_first_name(self):
         """Тест создания пользователя С first_name"""
-        user = User.objects.create_user(
-            email='withfirst@example.com',
-            password='testpass123',
-            first_name='Тестовое'
-        )
+        user = User.objects.create_user(email="withfirst@example.com", password="testpass123", first_name="Тестовое")
 
-        self.assertEqual(user.email, 'withfirst@example.com')
-        self.assertEqual(user.first_name, 'Тестовое')
-        self.assertTrue(user.check_password('testpass123'))
+        self.assertEqual(user.email, "withfirst@example.com")
+        self.assertEqual(user.first_name, "Тестовое")
+        self.assertTrue(user.check_password("testpass123"))
 
     def test_create_superuser(self):
         """Тест создания суперпользователя"""
         superuser = User.objects.create_superuser(
-            email='admin@example.com',
-            password='adminpass123',
-            first_name='Админ'
+            email="admin@example.com", password="adminpass123", first_name="Админ"
         )
 
-        self.assertEqual(superuser.email, 'admin@example.com')
-        self.assertEqual(superuser.first_name, 'Админ')
+        self.assertEqual(superuser.email, "admin@example.com")
+        self.assertEqual(superuser.first_name, "Админ")
         self.assertTrue(superuser.is_staff)
         self.assertTrue(superuser.is_superuser)
 
@@ -50,19 +42,15 @@ class RealisticNotificationTest(TestCase):
     """Реалистичные тесты для уведомлений на основе диагностики"""
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            email='user@example.com',
-            password='testpass123',
-            first_name='Тестовый'
-        )
+        self.user = User.objects.create_user(email="user@example.com", password="testpass123", first_name="Тестовый")
 
         self.task = Task.objects.create(
             user=self.user,
-            title='Тестовая задача',
-            description='Описание тестовой задачи',
-            priority='high',
-            status='todo',
-            due_date=timezone.now() + timezone.timedelta(days=1)
+            title="Тестовая задача",
+            description="Описание тестовой задачи",
+            priority="high",
+            status="todo",
+            due_date=timezone.now() + timezone.timedelta(days=1),
         )
 
     def test_create_notification(self):
@@ -72,27 +60,27 @@ class RealisticNotificationTest(TestCase):
         notification = Notification.objects.create(
             user=self.user,
             task=self.task,
-            notification_type='deadline',
-            title='Тестовое уведомление',
-            message='Это тестовое сообщение уведомления',
-            scheduled_for=timezone.now()
+            notification_type="deadline",
+            title="Тестовое уведомление",
+            message="Это тестовое сообщение уведомления",
+            scheduled_for=timezone.now(),
         )
 
         # Проверяем что уведомление создано
         self.assertEqual(Notification.objects.count(), initial_count + 1)
         self.assertEqual(notification.user, self.user)
         self.assertEqual(notification.task, self.task)
-        self.assertEqual(notification.title, 'Тестовое уведомление')
+        self.assertEqual(notification.title, "Тестовое уведомление")
 
     def test_notification_str_contains_title(self):
         """Тест что строковое представление содержит заголовок"""
         notification = Notification.objects.create(
             user=self.user,
             task=self.task,
-            notification_type='deadline',
-            title='Тест строки',
-            message='Сообщение',
-            scheduled_for=timezone.now()
+            notification_type="deadline",
+            title="Тест строки",
+            message="Сообщение",
+            scheduled_for=timezone.now(),
         )
 
         # Обновляем для гарантии
@@ -100,21 +88,21 @@ class RealisticNotificationTest(TestCase):
 
         # Проверяем что строка содержит заголовок (независимо от проблемы с user)
         notification_str = str(notification)
-        self.assertIn('Тест строки', notification_str)
+        self.assertIn("Тест строки", notification_str)
 
         # Дополнительно проверяем что user доступен
         self.assertIsNotNone(notification.user)
-        self.assertEqual(notification.user.email, 'user@example.com')
+        self.assertEqual(notification.user.email, "user@example.com")
 
     def test_notification_methods(self):
         """Тест методов уведомления"""
         notification = Notification.objects.create(
             user=self.user,
             task=self.task,
-            notification_type='deadline',
-            title='Тест методов',
-            message='Сообщение',
-            scheduled_for=timezone.now()
+            notification_type="deadline",
+            title="Тест методов",
+            message="Сообщение",
+            scheduled_for=timezone.now(),
         )
 
         # Проверяем начальное состояние
@@ -137,37 +125,35 @@ class RealisticTaskTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            email='taskuser@example.com',
-            password='testpass123',
-            first_name='Задачник'
+            email="taskuser@example.com", password="testpass123", first_name="Задачник"
         )
 
     def test_task_creation_basic(self):
         """Базовый тест создания задачи"""
         task = Task.objects.create(
             user=self.user,
-            title='Базовая задача',
-            description='Простое описание',
-            priority='medium',
-            status='todo',
-            due_date=timezone.now() + timezone.timedelta(hours=5)
+            title="Базовая задача",
+            description="Простое описание",
+            priority="medium",
+            status="todo",
+            due_date=timezone.now() + timezone.timedelta(hours=5),
         )
 
         self.assertEqual(Task.objects.count(), 1)
         self.assertEqual(task.user, self.user)
-        self.assertEqual(task.title, 'Базовая задача')
-        self.assertEqual(task.priority, 'medium')
+        self.assertEqual(task.title, "Базовая задача")
+        self.assertEqual(task.priority, "medium")
 
     def test_task_overdue_logic(self):
         """Тест логики просроченных задач"""
         # Просроченная задача
         overdue_task = Task.objects.create(
             user=self.user,
-            title='Просроченная',
-            description='Просрочена',
-            priority='high',
-            status='todo',
-            due_date=timezone.now() - timezone.timedelta(hours=1)
+            title="Просроченная",
+            description="Просрочена",
+            priority="high",
+            status="todo",
+            due_date=timezone.now() - timezone.timedelta(hours=1),
         )
 
         self.assertTrue(overdue_task.is_overdue())
@@ -175,11 +161,11 @@ class RealisticTaskTest(TestCase):
         # Непросроченная (выполнена)
         not_overdue_task = Task.objects.create(
             user=self.user,
-            title='Выполненная',
-            description='Не просрочена т.к. выполнена',
-            priority='low',
-            status='done',
-            due_date=timezone.now() - timezone.timedelta(hours=1)
+            title="Выполненная",
+            description="Не просрочена т.к. выполнена",
+            priority="low",
+            status="done",
+            due_date=timezone.now() - timezone.timedelta(hours=1),
         )
 
         self.assertFalse(not_overdue_task.is_overdue())
@@ -188,18 +174,18 @@ class RealisticTaskTest(TestCase):
         """Тест автоматической установки даты выполнения"""
         task = Task.objects.create(
             user=self.user,
-            title='Задача для выполнения',
-            description='Описание',
-            priority='medium',
-            status='todo',
-            due_date=timezone.now() + timezone.timedelta(days=1)
+            title="Задача для выполнения",
+            description="Описание",
+            priority="medium",
+            status="todo",
+            due_date=timezone.now() + timezone.timedelta(days=1),
         )
 
         # Изначально не установлена
         self.assertIsNone(task.completed_date)
 
         # Меняем статус на выполненный
-        task.status = 'done'
+        task.status = "done"
         task.save()
         task.refresh_from_db()
 
@@ -207,7 +193,7 @@ class RealisticTaskTest(TestCase):
         self.assertIsNotNone(task.completed_date)
 
         # Возвращаем в работу
-        task.status = 'in_progress'
+        task.status = "in_progress"
         task.save()
         task.refresh_from_db()
 
@@ -220,18 +206,16 @@ class RealisticIntegrationTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            email='integration@example.com',
-            password='pass123',
-            first_name='Интеграционный'
+            email="integration@example.com", password="pass123", first_name="Интеграционный"
         )
 
     def test_user_has_tasks(self):
         """Тест что у пользователя есть задачи"""
         # Создаем несколько задач
         tasks_data = [
-            ('Задача 1', 'Описание 1', 'high'),
-            ('Задача 2', 'Описание 2', 'medium'),
-            ('Задача 3', 'Описание 3', 'low'),
+            ("Задача 1", "Описание 1", "high"),
+            ("Задача 2", "Описание 2", "medium"),
+            ("Задача 3", "Описание 3", "low"),
         ]
 
         for title, description, priority in tasks_data:
@@ -240,8 +224,8 @@ class RealisticIntegrationTest(TestCase):
                 title=title,
                 description=description,
                 priority=priority,
-                status='todo',
-                due_date=timezone.now() + timezone.timedelta(days=1)
+                status="todo",
+                due_date=timezone.now() + timezone.timedelta(days=1),
             )
 
         # Проверяем что задачи созданы и связаны с пользователем
@@ -256,21 +240,21 @@ class RealisticIntegrationTest(TestCase):
         # Создаем задачу
         task = Task.objects.create(
             user=self.user,
-            title='Задача для уведомления',
-            description='Описание',
-            priority='high',
-            status='todo',
-            due_date=timezone.now() + timezone.timedelta(hours=2)
+            title="Задача для уведомления",
+            description="Описание",
+            priority="high",
+            status="todo",
+            due_date=timezone.now() + timezone.timedelta(hours=2),
         )
 
         # Создаем уведомление вручную
         notification = Notification.objects.create(
             user=self.user,
             task=task,
-            notification_type='deadline',
-            title='Ручное уведомление',
+            notification_type="deadline",
+            title="Ручное уведомление",
             message=f'Уведомление для задачи "{task.title}"',
-            scheduled_for=timezone.now()
+            scheduled_for=timezone.now(),
         )
 
         # Проверяем связи
@@ -294,33 +278,30 @@ class TaskNotificationFeatureTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            email='feature@example.com',
-            password='pass123',
-            first_name='Функциональный'
+            email="feature@example.com", password="pass123", first_name="Функциональный"
         )
 
     def test_task_with_notification_setting(self):
         """Тест задачи с настройкой уведомлений - ИСПРАВЛЕННЫЙ"""
         task = Task.objects.create(
             user=self.user,
-            title='Задача с уведомлениями',
-            description='Должна иметь настройки уведомлений',
-            priority='high',
-            status='todo',
+            title="Задача с уведомлениями",
+            description="Должна иметь настройки уведомлений",
+            priority="high",
+            status="todo",
             due_date=timezone.now() + timezone.timedelta(days=1),
-            notification_setting='day_before',
-            is_recurring='weekly',
-            weekly_days=['1', '3', '5']  # Вт, Чт, Сб
+            notification_setting="day_before",
+            is_recurring="weekly",
+            weekly_days=["1", "3", "5"],  # Вт, Чт, Сб
         )
 
         # Обновляем задачу из базы для получения актуальных данных
         task.refresh_from_db()
 
         # Проверяем настройки
-        self.assertEqual(task.notification_setting, 'day_before')
-        self.assertEqual(task.is_recurring, 'weekly')
+        self.assertEqual(task.notification_setting, "day_before")
+        self.assertEqual(task.is_recurring, "weekly")
 
-        # ВАЖНО: JSONField может преобразовывать строки в числа
         # Проверяем значения, а не типы
         self.assertEqual(len(task.weekly_days), 3)
         self.assertIn(1, task.weekly_days)  # Или '1' в зависимости от поведения
@@ -329,6 +310,6 @@ class TaskNotificationFeatureTest(TestCase):
 
         # Проверяем описание периодичности
         recurrence_desc = task.get_recurrence_description()
-        self.assertIn('Еженедельно', recurrence_desc)
+        self.assertIn("Еженедельно", recurrence_desc)
         # Проверяем что описание содержит нужные дни (независимо от формата)
-        self.assertTrue(any(day in recurrence_desc for day in ['Вт', 'Чт', 'Сб']))
+        self.assertTrue(any(day in recurrence_desc for day in ["Вт", "Чт", "Сб"]))

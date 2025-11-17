@@ -1,29 +1,31 @@
+import logging
+from datetime import timedelta
+
+from django.conf import settings
+from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.core.mail import send_mail
-from django.conf import settings
-from planner.models import Task, Notification
-from datetime import timedelta
-import logging
+
+from planner.models import Notification, Task
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Проверяет задачи и создает уведомления'
+    help = "Проверяет задачи и создает уведомления"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--test',
-            action='store_true',
-            help='Тестовый режим (показывает что было бы отправлено)',
+            "--test",
+            action="store_true",
+            help="Тестовый режим (показывает что было бы отправлено)",
         )
-        parser.add_argument('--send-email', action='store_true', help='Отправлять email уведомления')
+        parser.add_argument("--send-email", action="store_true", help="Отправлять email уведомления")
 
     def handle(self, *args, **options):
         now = timezone.now()
-        test_mode = options['test']
-        send_email = options['send_email']  # Получаем параметр отправки email
+        test_mode = options["test"]
+        send_email = options["send_email"]  # Получаем параметр отправки email
 
         self.stdout.write(f"🕒 Проверка уведомлений в {now}")
         if test_mode:
@@ -38,9 +40,9 @@ class Command(BaseCommand):
         # 1. Создаем уведомления для приближающихся дедлайнов
         upcoming_tasks = Task.objects.filter(
             due_date__isnull=False,
-            status__in=['todo', 'in_progress'],
-            notification_setting__in=['day_before', 'hour_before', 'fifteen_minutes', 'at_time']
-        ).select_related('user')
+            status__in=["todo", "in_progress"],
+            notification_setting__in=["day_before", "hour_before", "fifteen_minutes", "at_time"],
+        ).select_related("user")
 
         for task in upcoming_tasks:
             if not task.user.email:
@@ -52,41 +54,44 @@ class Command(BaseCommand):
             should_notify = False
             message = ""
 
-            if (task.notification_setting == 'day_before' and
-                    timedelta(hours=23) <= time_until_deadline <= timedelta(hours=25)):
+            if task.notification_setting == "day_before" and timedelta(hours=23) <= time_until_deadline <= timedelta(
+                hours=25
+            ):
                 message = f'Напоминание: завтра дедлайн по задаче "{task.title}"'
                 should_notify = True
 
-            elif (task.notification_setting == 'hour_before' and
-                  timedelta(minutes=55) <= time_until_deadline <= timedelta(hours=1, minutes=5)):
+            elif task.notification_setting == "hour_before" and timedelta(
+                minutes=55
+            ) <= time_until_deadline <= timedelta(hours=1, minutes=5):
                 message = f'Напоминание: через час дедлайн по задаче "{task.title}"'
                 should_notify = True
 
-            elif (task.notification_setting == 'fifteen_minutes' and
-                  timedelta(minutes=10) <= time_until_deadline <= timedelta(minutes=20)):
+            elif task.notification_setting == "fifteen_minutes" and timedelta(
+                minutes=10
+            ) <= time_until_deadline <= timedelta(minutes=20):
                 message = f'Напоминание: через 15 минут дедлайн по задаче "{task.title}"'
                 should_notify = True
 
-            elif (task.notification_setting == 'at_time' and
-                  task.custom_notification_time and
-                  abs((task.custom_notification_time - now).total_seconds()) <= 300):  # ±5 минут
+            elif (
+                task.notification_setting == "at_time"
+                and task.custom_notification_time
+                and abs((task.custom_notification_time - now).total_seconds()) <= 300
+            ):  # ±5 минут
                 message = f'Напоминание: дедлайн по задаче "{task.title}"'
                 should_notify = True
 
             if should_notify:
                 # Проверяем нет ли уже такого уведомления
                 existing_notification = Notification.objects.filter(
-                    task=task,
-                    notification_type='deadline',
-                    message=message
+                    task=task, notification_type="deadline", message=message
                 ).exists()
 
                 if not existing_notification:
                     notification = Notification.objects.create(
                         user=task.user,
                         task=task,
-                        notification_type='deadline',
-                        title='Напоминание о задаче',
+                        notification_type="deadline",
+                        title="Напоминание о задаче",
                         message=message,
                         scheduled_for=timezone.now(),
                     )
@@ -95,18 +100,20 @@ class Command(BaseCommand):
 
                     if test_mode:
                         self.stdout.write(
-                            self.style.SUCCESS(f'📧 [TEST] Уведомление для {task.user.email}: {task.title}')
+                            self.style.SUCCESS(f"📧 [TEST] Уведомление для {task.user.email}: {task.title}")
                         )
                     else:
-                        self.stdout.write(
-                            self.style.SUCCESS(f'✅ Создано уведомление: {task.title}')
-                        )
+                        self.stdout.write(self.style.SUCCESS(f"✅ Создано уведомление: {task.title}"))
 
         # 2. Уведомления о просроченных задачах
-        overdue_tasks = Task.objects.filter(
-            due_date__lt=now,
-            status__in=['todo', 'in_progress'],
-        ).exclude(notifications__notification_type='overdue').select_related('user')
+        overdue_tasks = (
+            Task.objects.filter(
+                due_date__lt=now,
+                status__in=["todo", "in_progress"],
+            )
+            .exclude(notifications__notification_type="overdue")
+            .select_related("user")
+        )
 
         for task in overdue_tasks:
             if not task.user.email:
@@ -116,8 +123,8 @@ class Command(BaseCommand):
             notification = Notification.objects.create(
                 user=task.user,
                 task=task,
-                notification_type='overdue',
-                title='Задача просрочена',
+                notification_type="overdue",
+                title="Задача просрочена",
                 message=f'Задача "{task.title}" просрочена!',
                 scheduled_for=timezone.now(),
             )
@@ -127,12 +134,10 @@ class Command(BaseCommand):
 
             if test_mode:
                 self.stdout.write(
-                    self.style.WARNING(f'⚠️ [TEST] Уведомление о просрочке для {task.user.email}: {task.title}')
+                    self.style.WARNING(f"⚠️ [TEST] Уведомление о просрочке для {task.user.email}: {task.title}")
                 )
             else:
-                self.stdout.write(
-                    self.style.WARNING(f'⚠️ Создано уведомление о просрочке: {task.title}')
-                )
+                self.stdout.write(self.style.WARNING(f"⚠️ Создано уведомление о просрочке: {task.title}"))
 
         # 3. Отправка email уведомлений
         if send_email and not test_mode and notifications_to_email:
@@ -142,21 +147,13 @@ class Command(BaseCommand):
         # Итоги
         self.stdout.write("\n" + "=" * 50)
         if test_mode:
-            self.stdout.write(
-                self.style.SUCCESS(f'🧪 ТЕСТ: Было бы создано {created_count} уведомлений')
-            )
+            self.stdout.write(self.style.SUCCESS(f"🧪 ТЕСТ: Было бы создано {created_count} уведомлений"))
             if send_email:
-                self.stdout.write(
-                    self.style.WARNING(f'📧 В тестовом режиме email не отправляются')
-                )
+                self.stdout.write(self.style.WARNING(f"📧 В тестовом режиме email не отправляются"))
         else:
-            self.stdout.write(
-                self.style.SUCCESS(f'📝 Создано {created_count} новых уведомлений')
-            )
+            self.stdout.write(self.style.SUCCESS(f"📝 Создано {created_count} новых уведомлений"))
             if send_email:
-                self.stdout.write(
-                    self.style.SUCCESS(f'📤 Отправлено {email_count} email уведомлений')
-                )
+                self.stdout.write(self.style.SUCCESS(f"📤 Отправлено {email_count} email уведомлений"))
 
     def send_notification_emails(self, notifications):
         """Отправляет email уведомления"""
@@ -192,13 +189,11 @@ class Command(BaseCommand):
 
                 sent_count += 1
                 self.stdout.write(
-                    self.style.SUCCESS(f'✅ Email отправлен для {notification.user.email}: {notification.task.title}')
+                    self.style.SUCCESS(f"✅ Email отправлен для {notification.user.email}: {notification.task.title}")
                 )
 
             except Exception as e:
-                self.stdout.write(
-                    self.style.ERROR(f'❌ Ошибка отправки email для {notification.user.email}: {e}')
-                )
+                self.stdout.write(self.style.ERROR(f"❌ Ошибка отправки email для {notification.user.email}: {e}"))
                 logger.error(f"Ошибка отправки email уведомления: {e}")
 
         return sent_count

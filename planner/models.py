@@ -47,10 +47,7 @@ class Task(models.Model):
 
     # Поля для периодических задач
     is_recurring = models.CharField(
-        max_length=20,
-        choices=RECURRENCE_CHOICES,
-        default="none",
-        verbose_name="Повторение"
+        max_length=20, choices=RECURRENCE_CHOICES, default="none", verbose_name="Повторение"
     )
 
     # Для еженедельного повторения - дни недели (0-6, где 0 - понедельник)
@@ -58,48 +55,34 @@ class Task(models.Model):
         default=list,
         blank=True,
         verbose_name="Дни недели",
-        help_text="Дни недели для повторения (0-6, где 0 - понедельник)"
+        help_text="Дни недели для повторения (0-6, где 0 - понедельник)",
     )
 
     # Для ежемесячного повторения - числа месяца (1-31)
     monthly_days = models.JSONField(
-        default=list,
-        blank=True,
-        verbose_name="Числа месяца",
-        help_text="Числа месяца для повторения (1-31)"
+        default=list, blank=True, verbose_name="Числа месяца", help_text="Числа месяца для повторения (1-31)"
     )
 
     # Дата окончания повторений
-    recurrence_end_date = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="Повторять до"
-    )
+    recurrence_end_date = models.DateTimeField(null=True, blank=True, verbose_name="Повторять до")
 
     # ID оригинальной задачи для цепочки повторений
     parent_task = models.ForeignKey(
-        'self',
+        "self",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='recurrences',
-        verbose_name="Родительская задача"
+        related_name="recurrences",
+        verbose_name="Родительская задача",
     )
 
     # Поля для уведомлений
     notification_setting = models.CharField(
-        max_length=20,
-        choices=NOTIFICATION_CHOICES,
-        default="none",
-        verbose_name="Уведомление"
+        max_length=20, choices=NOTIFICATION_CHOICES, default="none", verbose_name="Уведомление"
     )
 
     # Дополнительное время для уведомления (если выбрано 'at_time')
-    custom_notification_time = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="Время уведомления"
-    )
+    custom_notification_time = models.DateTimeField(null=True, blank=True, verbose_name="Время уведомления")
 
     class Meta:
         ordering = ["-created_at"]
@@ -163,7 +146,7 @@ class Task(models.Model):
                 notification_type="deadline",
                 title="Напоминание о дедлайне",
                 message=message,
-                scheduled_for=notification_time
+                scheduled_for=notification_time,
             )
             return notification
 
@@ -171,9 +154,7 @@ class Task(models.Model):
 
     def create_overdue_notification(self):
         """Создает уведомление о просроченной задаче"""
-        if (self.due_date and
-                self.due_date < timezone.now() and
-                self.status in ["todo", "in_progress"]):
+        if self.due_date and self.due_date < timezone.now() and self.status in ["todo", "in_progress"]:
             from .models import Notification
 
             notification = Notification.objects.create(
@@ -182,7 +163,7 @@ class Task(models.Model):
                 notification_type="overdue",
                 title="Задача просрочена",
                 message=f'Задача "{self.title}" просрочена!',
-                scheduled_for=timezone.now()
+                scheduled_for=timezone.now(),
             )
             return notification
         return None
@@ -254,7 +235,7 @@ class Task(models.Model):
             recurrence_end_date=self.recurrence_end_date,
             parent_task=self,
             notification_setting=self.notification_setting,
-            custom_notification_time=self.custom_notification_time
+            custom_notification_time=self.custom_notification_time,
         )
 
         # Создаем уведомление для новой повторяющейся задачи
@@ -317,9 +298,11 @@ class Task(models.Model):
 
         # Обработка уведомлений при изменении даты выполнения или настроек уведомлений
         if not is_new and old_task:
-            if (self.due_date != old_task.due_date or
-                    self.notification_setting != old_task.notification_setting or
-                    self.custom_notification_time != old_task.custom_notification_time):
+            if (
+                self.due_date != old_task.due_date
+                or self.notification_setting != old_task.notification_setting
+                or self.custom_notification_time != old_task.custom_notification_time
+            ):
                 # Удаляем старые уведомления по этой задаче
                 self.notifications.filter(notification_type="deadline").delete()
                 # Создаем новые уведомления

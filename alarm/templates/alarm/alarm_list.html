@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои будильники - Личные записульки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>⏰ Мои будильники</h1>
+                <a href="{% url 'alarm:alarm_create' %}" class="btn btn-primary">
+                    ➕ Создать будильник
+                </a>
+            </div>
+
+            {% if alarms %}
+            <div class="row">
+                {% for alarm in alarms %}
+                <div class="col-md-6 mb-4">
+                    <div class="card {% if not alarm.is_active %}bg-light{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">
+                                        {{ alarm.name }}
+                                        {% if not alarm.is_active %}
+                                        <span class="badge bg-secondary">Неактивен</span>
+                                        {% endif %}
+                                    </h5>
+                                    <p class="card-text mb-1">
+                                        <i class="fas fa-clock me-2"></i><strong>Время:</strong> {{ alarm.alarm_time|time:"H:i" }}
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <i class="fas fa-repeat me-2"></i><strong>Тип:</strong>
+                                        {% if alarm.is_recurring %}
+                                            Повторяющийся
+                                            {% if alarm.days_of_week %}
+                                            ({{ alarm.get_days_display }})
+                                            {% endif %}
+                                        {% else %}
+                                            Однократный
+                                        {% endif %}
+                                    </p>
+                                    {% if alarm.reminder_text %}
+                                    <p class="card-text mt-2">
+                                        <i class="fas fa-sticky-note me-2"></i><small>{{ alarm.reminder_text }}</small>
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group ms-3">
+                                    <a href="{% url 'alarm:alarm_detail' alarm.pk %}"
+                                       class="btn btn-sm btn-outline-info">👁️</a>
+                                    <a href="{% url 'alarm:alarm_edit' alarm.pk %}"
+                                       class="btn btn-sm btn-outline-secondary"
+                                       title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'alarm:alarm_delete' alarm.pk %}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-bell fa-4x text-muted"></i>
+                </div>
+                <h3 class="text-muted">Будильников пока нет</h3>
+                <p class="text-muted">Создайте свой первый будильник</p>
+                <a href="{% url 'alarm:alarm_create' %}" class="btn btn-primary btn-lg">
+                    ➕ Создать будильник
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

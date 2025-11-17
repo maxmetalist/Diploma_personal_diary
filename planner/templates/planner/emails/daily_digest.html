@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ежедневный дайджест - Личные записульки</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .notification { background: white; margin: 10px 0; padding: 15px; border-left: 4px solid #667eea; border-radius: 4px; }
+        .task-title { font-weight: bold; color: #2c3e50; }
+        .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Ежедневный дайджест</h1>
+            <p>Ваши уведомления за последние 24 часа</p>
+        </div>
+
+        <div class="content">
+            <h2>Здравствуйте, {{ user.first_name|default:user.username }}!</h2>
+
+            {% if notifications %}
+                <p>За последние 24 часа у вас <strong>{{ notifications|length }}</strong> уведомлений:</p>
+
+                {% for notification in notifications %}
+                <div class="notification">
+                    <div class="task-title">
+                        {% if notification.notification_type == 'overdue' %}⚠️{% else %}🔔{% endif %}
+                        {{ notification.title }}
+                    </div>
+                    <p>{{ notification.message }}</p>
+                    {% if notification.task %}
+                    <small>
+                        Задача: <strong>{{ notification.task.title }}</strong><br>
+                        {% if notification.task.due_date %}
+                        Дедлайн: {{ notification.task.due_date|date:"d.m.Y H:i" }}
+                        {% endif %}
+                    </small>
+                    {% endif %}
+                    <div style="color: #666; font-size: 12px; margin-top: 5px;">
+                        {{ notification.created_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 40px 20px;">
+                    <h3>🎉 Отличные новости!</h3>
+                    <p>За последние 24 часа у вас не было новых уведомлений.</p>
+                    <p>Все задачи под контролем!</p>
+                </div>
+            {% endif %}
+
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="{{ site_url }}{% url 'planner:planning' %}" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    📋 Перейти к планировщику
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Личный дневник - Ваш помощник в планировании!</p>
+            <p><small>Это автоматическое письмо, пожалуйста, не отвечайте на него.</small></p>
+        </div>
+    </div>
+</body>
+</html>

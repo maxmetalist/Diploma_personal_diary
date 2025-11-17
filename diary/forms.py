@@ -1,4 +1,5 @@
 from django import forms
+
 from diary.models import DiaryEntry, MediaFile
 
 
@@ -6,9 +7,9 @@ from diary.models import DiaryEntry, MediaFile
 class DiaryEntryForm(forms.ModelForm):
     images = forms.ModelMultipleChoiceField(
         queryset=MediaFile.objects.none(),
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'image-select'}),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "image-select"}),
         required=False,
-        label='Добавить изображения'
+        label="Добавить изображения",
     )
 
     class Meta:
@@ -22,12 +23,11 @@ class DiaryEntryForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
         # Ограничиваем выбор только изображениями текущего пользователя
         if user:
-            self.fields['images'].queryset = MediaFile.objects.filter(
-                user=user,
-                file_type__startswith='image'
-            ).order_by('-created_at')
+            self.fields["images"].queryset = MediaFile.objects.filter(
+                user=user, file_type__startswith="image"
+            ).order_by("-created_at")

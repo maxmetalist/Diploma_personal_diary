@@ -1,16 +1,18 @@
+from datetime import datetime, timedelta
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
-from django.template.loader import render_to_string
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from diary.models import DiaryEntry, MediaFile
-from diary.forms import DiaryEntryForm
 from django.core.paginator import Paginator
-from django.utils import timezone
-from datetime import datetime, timedelta
 from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+
+from diary.forms import DiaryEntryForm
+from diary.models import DiaryEntry, MediaFile
 
 User = get_user_model()
 
@@ -114,15 +116,15 @@ class EntryCreateView(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs["user"] = self.request.user
         return kwargs
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         response = super().form_valid(form)
         # Сохраняем связь ManyToMany с изображениями
-        if form.cleaned_data['images']:
-            self.object.images.set(form.cleaned_data['images'])
+        if form.cleaned_data["images"]:
+            self.object.images.set(form.cleaned_data["images"])
             print(f"Создана запись с {form.cleaned_data['images'].count()} изображениями")
         return response
 
@@ -138,19 +140,15 @@ class EntryUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        if self.request.method == 'GET':
-            kwargs.update({
-                'initial': {
-                    'images': self.object.images.all()
-                }
-            })
+        kwargs["user"] = self.request.user
+        if self.request.method == "GET":
+            kwargs.update({"initial": {"images": self.object.images.all()}})
         return kwargs
 
     def form_valid(self, form):
         response = super().form_valid(form)
         # Обновляем связь с изображениями
-        self.object.images.set(form.cleaned_data['images'])
+        self.object.images.set(form.cleaned_data["images"])
         print(f"Обновлена запись с {form.cleaned_data['images'].count()} изображениями")
         return response
 
