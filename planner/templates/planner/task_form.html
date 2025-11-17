@@ -5,31 +5,228 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
-        <div class="col-md-8 mx-auto">
+        <div class="col-md-10 mx-auto">
             <div class="card">
                 <div class="card-header">
-                    <h2>{{ title }}</h2>
+                    <h2 class="mb-0">{{ title }}</h2>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="taskForm">
                         {% csrf_token %}
 
-                        {% for field in form %}
+                        <!-- Основные поля -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">
+                                        {{ form.title.label }}
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.title.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                        {{ form.priority.label }}
+                                    </label>
+                                    {{ form.priority }}
+                                    {% if form.priority.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.priority.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">
-                                {{ field.label }}
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }}
                             </label>
-                            {{ field }}
-                            {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                            {% if field.errors %}
+                            {{ form.description }}
+                            {% if form.description.errors %}
                             <div class="alert alert-danger mt-1">
-                                {{ field.errors }}
+                                {{ form.description.errors }}
                             </div>
                             {% endif %}
                         </div>
-                        {% endfor %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                        {{ form.due_date.label }}
+                                    </label>
+                                    {{ form.due_date }}
+                                    {% if form.due_date.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.due_date.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        {{ form.status.label }}
+                                    </label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.status.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки периодичности -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">🔄 Повторение задачи</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.is_recurring.id_for_label }}" class="form-label">
+                                        {{ form.is_recurring.label }}
+                                    </label>
+                                    {{ form.is_recurring }}
+                                    {% if form.is_recurring.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.is_recurring.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Поля для еженедельного повторения -->
+                                <div id="weeklyFields" class="mb-3" style="display: none;">
+                                    <label class="form-label">Дни недели</label>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <div class="form-check">
+                                            {{ form.monday }}
+                                            <label class="form-check-label" for="{{ form.monday.id_for_label }}">
+                                                Понедельник
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.tuesday }}
+                                            <label class="form-check-label" for="{{ form.tuesday.id_for_label }}">
+                                                Вторник
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.wednesday }}
+                                            <label class="form-check-label" for="{{ form.wednesday.id_for_label }}">
+                                                Среда
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.thursday }}
+                                            <label class="form-check-label" for="{{ form.thursday.id_for_label }}">
+                                                Четверг
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.friday }}
+                                            <label class="form-check-label" for="{{ form.friday.id_for_label }}">
+                                                Пятница
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.saturday }}
+                                            <label class="form-check-label" for="{{ form.saturday.id_for_label }}">
+                                                Суббота
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.sunday }}
+                                            <label class="form-check-label" for="{{ form.sunday.id_for_label }}">
+                                                Воскресенье
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Поля для ежемесячного повторения -->
+                                <div id="monthlyFields" class="mb-3" style="display: none;">
+                                    <label class="form-label">Числа месяца</label>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Быстрый выбор:</small>
+                                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="selectAllMonthDays()">Все</button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectWeekdays()">Будни</button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectWeekend()">Выходные</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearMonthDays()">Очистить</button>
+                                    </div>
+                                    <div style="max-height: 200px; overflow-y: auto;" class="border p-3 rounded">
+                                        <div class="row">
+                                            {% for day in "12345678910111213141516171819202122232425262728293031"|make_list %}
+                                            <div class="col-4 col-sm-3 col-md-2 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input monthly-day" type="checkbox"
+                                                           name="monthly_days_field" value="{{ day }}"
+                                                           id="monthDay{{ day }}"
+                                                           {% if day in form.monthly_days_field.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="monthDay{{ day }}">
+                                                        {{ day }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Дата окончания повторений -->
+                                <div id="recurrenceEndDateField" class="mb-3" style="display: none;">
+                                    <label for="{{ form.recurrence_end_date.id_for_label }}" class="form-label">
+                                        {{ form.recurrence_end_date.label }}
+                                    </label>
+                                    {{ form.recurrence_end_date }}
+                                    {% if form.recurrence_end_date.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.recurrence_end_date.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки уведомлений -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">🔔 Уведомления</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.notification_setting.id_for_label }}" class="form-label">
+                                        {{ form.notification_setting.label }}
+                                    </label>
+                                    {{ form.notification_setting }}
+                                    {% if form.notification_setting.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.notification_setting.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div id="customNotificationTimeField" class="mb-3" style="display: none;">
+                                    <label for="{{ form.custom_notification_time.id_for_label }}" class="form-label">
+                                        {{ form.custom_notification_time.label }}
+                                    </label>
+                                    {{ form.custom_notification_time }}
+                                    {% if form.custom_notification_time.errors %}
+                                    <div class="alert alert-danger mt-1">
+                                        {{ form.custom_notification_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
@@ -45,15 +242,106 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Функция для показа/скрытия полей в зависимости от типа повторения
+function toggleRecurrenceFields() {
+    const recurrenceType = document.getElementById('id_is_recurring').value;
+
+    // Скрываем все поля
+    document.getElementById('weeklyFields').style.display = 'none';
+    document.getElementById('monthlyFields').style.display = 'none';
+    document.getElementById('recurrenceEndDateField').style.display = 'none';
+
+    // Показываем нужные поля
+    if (recurrenceType === 'weekly') {
+        document.getElementById('weeklyFields').style.display = 'block';
+        document.getElementById('recurrenceEndDateField').style.display = 'block';
+    } else if (recurrenceType === 'monthly') {
+        document.getElementById('monthlyFields').style.display = 'block';
+        document.getElementById('recurrenceEndDateField').style.display = 'block';
+    } else if (recurrenceType === 'daily') {
+        document.getElementById('recurrenceEndDateField').style.display = 'block';
+    }
+}
+
+// Функция для показа/скрытия поля кастомного времени уведомления
+function toggleNotificationFields() {
+    const notificationType = document.getElementById('id_notification_setting').value;
+    document.getElementById('customNotificationTimeField').style.display =
+        (notificationType === 'at_time') ? 'block' : 'none';
+}
+
+// Функции для быстрого выбора чисел месяца
+function selectAllMonthDays() {
+    document.querySelectorAll('.monthly-day').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function selectWeekdays() {
+    const weekdays = ['1', '2', '3', '4', '5', '8', '9', '10', '11', '12', '15', '16', '17', '18', '19', '22', '23', '24', '25', '26', '29', '30', '31'];
+    document.querySelectorAll('.monthly-day').forEach(checkbox => {
+        checkbox.checked = weekdays.includes(checkbox.value);
+    });
+}
+
+function selectWeekend() {
+    const weekend = ['6', '7', '13', '14', '20', '21', '27', '28'];
+    document.querySelectorAll('.monthly-day').forEach(checkbox => {
+        checkbox.checked = weekend.includes(checkbox.value);
+    });
+}
+
+function clearMonthDays() {
+    document.querySelectorAll('.monthly-day').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем поля
+    toggleRecurrenceFields();
+    toggleNotificationFields();
+
+    // Устанавливаем текущую дату и время по умолчанию для due_date, если не установлено
+    const dueDateField = document.getElementById('id_due_date');
+    if (dueDateField && !dueDateField.value) {
+        const now = new Date();
+        // Устанавливаем время на 2 часа вперед от текущего
+        now.setHours(now.getHours() + 2);
+        now.setMinutes(0);
+        dueDateField.value = now.toISOString().slice(0, 16);
+    }
+});
+</script>
 
 <style>
-    .form-control, .form-select {
-        border-radius: 8px;
-    }
+.form-control, .form-select {
+    border-radius: 8px;
+}
 
-    .form-control:focus, .form-select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-    }
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
 </style>
 {% endblock %}
