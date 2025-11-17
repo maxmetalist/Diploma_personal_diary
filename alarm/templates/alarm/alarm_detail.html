@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ alarm.name }} - Личные записульки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">{{ alarm.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Время:</strong> {{ alarm.alarm_time|time:"H:i" }}</p>
+                    <p><strong>Тип:</strong>
+                        {% if alarm.is_recurring %}
+                            Повторяющийся ({{ alarm.get_days_display }})
+                        {% else %}
+                            Однократный
+                        {% endif %}
+                    </p>
+                    <p><strong>Статус:</strong>
+                        {% if alarm.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивен</span>
+                        {% endif %}
+                    </p>
+
+                    {% if alarm.reminder_text %}
+                    <p><strong>Напоминание:</strong></p>
+                    <p>{{ alarm.reminder_text }}</p>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'alarm:alarm_edit' alarm.pk %}" class="btn btn-outline-primary">Редактировать</a>
+                        <a href="{% url 'alarm:alarm_delete' alarm.pk %}" class="btn btn-outline-danger">Удалить</a>
+                        <a href="{% url 'alarm:alarm_list' %}" class="btn btn-secondary">Назад к списку</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

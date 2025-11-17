@@ -62,10 +62,10 @@
             <h3 style="margin-top: 0;">{{ task.title }}</h3>
 
             {% if task.description %}
-            <p><strong>Описание:</strong> {{ task.description }}</p>
+            <p><strong>Описание:</strong> {{task.description }}</p>
             {% endif %}
 
-            <p><strong>Срок выполнения:</strong> {{ task.due_date|date:"d.m.Y H:i" }}</p>
+            <p><strong>Срок выполнения:</strong> {{task.due_date|date:"d.m.Y H:i" }}</p>
             <p><strong>Приоритет:</strong> {{ task.get_priority_display }}</p>
             <p><strong>Статус:</strong> {{ task.get_status_display }}</p>
         </div>

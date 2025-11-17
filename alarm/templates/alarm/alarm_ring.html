@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Будильник! - {{ alarm.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-dark">
+    <div class="text-center text-white">
+        <!-- Анимация будильника -->
+        <div class="alarm-animation mb-4">
+            <div class="alarm-clock-ringing">
+                <div class="clock-body">
+                    <div class="clock-face">
+                        <div class="clock-center"></div>
+                        <div class="hand hour-hand"></div>
+                        <div class="hand minute-hand"></div>
+                    </div>
+                    <div class="alarm-bell left-bell ringing"></div>
+                    <div class="alarm-bell right-bell ringing"></div>
+                    <div class="clock-stand"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о будильнике -->
+        <h1 class="display-4 mb-3">⏰ {{ alarm.name }}</h1>
+
+        {% if alarm.reminder_text %}
+        <div class="alert alert-info mx-auto" style="max-width: 500px;">
+            <h4 class="alert-heading">Напоминание:</h4>
+            <p class="mb-0">{{ alarm.reminder_text }}</p>
+        </div>
+        {% endif %}
+
+        <p class="lead mb-4">Время: {{ alarm.alarm_time|time:"H:i" }}</p>
+
+        <!-- Кнопка остановки -->
+        <form method="post" action="{% url 'alarm:alarm_stop' alarm.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg">
+                🔕 Остановить будильник
+            </button>
+        </form>
+
+        <!-- Аудио элемент -->
+        <audio id="alarm-sound" autoplay loop>
+            <source src="{{ alarm.get_sound_url }}" type="audio/mpeg">
+            Ваш браузер не поддерживает аудио элементы.
+        </audio>
+    </div>
+</div>
+
+<style>
+.alarm-clock-ringing {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+.clock-body {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: #f8f9fa;
+    border: 8px solid #495057;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.clock-face {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.clock-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: #dc3545;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+.hand {
+    position: absolute;
+    background: #495057;
+    transform-origin: bottom center;
+    left: 50%;
+}
+
+.hour-hand {
+    width: 4px;
+    height: 30px;
+    top: 30px;
+    margin-left: -2px;
+}
+
+.minute-hand {
+    width: 3px;
+    height: 40px;
+    top: 20px;
+    margin-left: -1.5px;
+}
+
+.alarm-bell {
+    position: absolute;
+    width: 20px;
+    height: 25px;
+    background: #ffc107;
+    top: -10px;
+    border-radius: 50% 50% 0 0;
+}
+
+.left-bell {
+    left: 10px;
+    transform-origin: top right;
+}
+
+.right-bell {
+    right: 10px;
+    transform-origin: top left;
+}
+
+.clock-stand {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    background: #6c757d;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 10px 10px;
+}
+
+/* Анимация звонка */
+.ringing {
+    animation: ring 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes ring {
+    0% { transform: rotate(-10deg); }
+    100% { transform: rotate(10deg); }
+}
+
+/* Анимация для всего будильника */
+.alarm-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+
+<script>
+// Автовоспроизведение звука
+document.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('alarm-sound');
+    audio.play().catch(function(error) {
+        console.log('Автовоспроизведение заблокировано:', error);
+    });
+});
+
+// Остановка звука при закрытии страницы
+window.addEventListener('beforeunload', function() {
+    const audio = document.getElementById('alarm-sound');
+    audio.pause();
+});
+</script>
+{% endblock %}

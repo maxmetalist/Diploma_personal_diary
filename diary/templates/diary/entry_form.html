@@ -1,13 +1,15 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}{% if form.instance.pk %}Редактировать{% else %}Новая запись{% endif %} - Личный дневник{% endblock %}
+{% block title %}{% if entry %}Редактировать{% else %}Создать{% endif %} запись - Личные записульки{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h4>{% if form.instance.pk %}Редактировать запись{% else %}Новая запись в дневнике{% endif %}</h4>
+                <h4 class="card-title mb-0">
+                    {% if entry %}Редактировать запись{% else %}Создать новую запись{% endif %}
+                </h4>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -17,24 +19,71 @@
                         <label for="{{ form.title.id_for_label }}" class="form-label">Заголовок</label>
                         {{form.title }}
                         {% if form.title.errors %}
-                            <div class="text-danger">{{ form.title.errors }}</div>
+                        <div class="text-danger">{{ form.title.errors }}</div>
                         {% endif %}
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.content.id_for_label }}" class="form-label">Пиши  свою хрень тут</label>
+                        <label for="{{ form.content.id_for_label }}" class="form-label">Содержание</label>
                         {{form.content}}
                         {% if form.content.errors %}
-                            <div class="text-danger">{{ form.content.errors }}</div>
+                        <div class="text-danger">{{ form.content.errors }}</div>
                         {% endif %}
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            {% if form.instance.pk %}Сохранить{% else %}Создать{% endif %}
-                        </button>
-                        <a href="{% if form.instance.pk %}{% url 'diary:entry_detail' form.instance.pk %}{% else %}{% url 'diary:entry_list' %}{% endif %}"
+                    <!-- Блок выбора изображений -->
+                    <div class="mb-4">
+                        <label class="form-label">Добавить изображения к записи</label>
+
+                        {% if form.images.field.queryset %}
+                        <div class="image-selection border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                            <div class="row">
+                                {% for checkbox in form.images %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check h-100">
+                                        <input type="checkbox"
+                                               name="{{ checkbox.data.name }}"
+                                               value="{{ checkbox.data.value }}"
+                                               id="{{ checkbox.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if checkbox.data.selected %}checked{% endif %}>
+                                        <label class="form-check-label d-block" for="{{ checkbox.id_for_label }}">
+                                            <img src="{{ checkbox.choice_label.file.url }}"
+                                                 class="img-thumbnail w-100"
+                                                 style="height: 120px; object-fit: cover;"
+                                                 alt="Миниатюра">
+                                            <small class="d-block text-muted text-center mt-1">
+                                                {{ checkbox.choice_label.created_at|date:"d.m.Y" }}
+                                            </small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <div class="text-center">
+                                <i class="fas fa-image fa-2x mb-2"></i>
+                                <p class="mb-2">Нет доступных изображений</p>
+                                <a href="{% url 'diary:entry_list' %}#images" class="btn btn-sm btn-outline-primary">
+                                    Загрузить изображения
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if form.images.errors %}
+                        <div class="text-danger">{{ form.images.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% if entry %}{% url 'diary:entry_detail' entry.pk %}{% else %}{% url 'diary:entry_list' %}{% endif %}"
                            class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if entry %}Сохранить изменения{% else %}Создать запись{% endif %}
+                        </button>
                     </div>
                 </form>
             </div>

@@ -1,8 +1,8 @@
 from django.urls import path
 
 from planner.api import tasks_by_date
-from planner.views import PlanningView, TaskCreateView, CalendarView, TaskListView, TaskUpdateView, TaskDeleteView, \
-    NotificationView, NotificationPreferenceView
+from planner.views import (CalendarView, NotificationPreferenceView, NotificationView, PlanningView, TaskCreateView,
+                           TaskDeleteView, TaskListView, TaskUpdateView)
 
 app_name = "planner"
 
@@ -17,7 +17,6 @@ urlpatterns = [
     path("api/tasks-by-date/", tasks_by_date, name="tasks_by_date"),
     path("calendar/update-date/<int:task_id>/", CalendarView.as_view(), name="calendar_update_date"),
     # Уведомления
-    path('api/notifications/', NotificationView.as_view(), name='notifications_api'),
-    path('api/notification-preferences/', NotificationPreferenceView.as_view(),
-         name='notification_preferences_api'),
+    path("api/notifications/", NotificationView.as_view(), name="notifications_api"),
+    path("api/notification-preferences/", NotificationPreferenceView.as_view(), name="notification_preferences_api"),
 ]

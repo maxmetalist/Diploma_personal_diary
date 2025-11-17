@@ -16,15 +16,53 @@
                 </div>
             </div>
             <div class="card-body">
+                <div class="alert alert-info d-none">
+                    <strong>Отладка:</strong><br>
+                    Запись: {{entry.title}}<br>
+                    ID: {{ entry.id }}<br>
+                    Изображений: {{ entry.images.count }}<br>
+                    {% for image in entry.images.all %}
+                    Изображение {{ forloop.counter }}: {{ image.file.url }}<br>
+                    {% endfor %}
+                </div>
+                <!-- Блок с изображениями записи -->
+                {% if entry.images.exists %}
+                <div class="entry-images mb-4">
+                    <h6 class="text-muted mb-3">
+                        <i class="fas fa-images me-2"></i>Изображения в записи ({{ entry.images.count }}):
+                    </h6>
+                    <div class="row">
+                        {% for image in entry.images.all %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <img src="{{ image.file.url }}"
+                                     class="card-img-top"
+                                     alt="Изображение записи"
+                                     style="height: 250px; object-fit: cover; cursor: pointer;"
+                                     onclick="openImageModal('{{ image.file.url }}')">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ image.created_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <hr>
+                {% endif %}
+
                 <div class="entry-content">
                     {{ entry.content|linebreaks }}
                 </div>
 
                 <div class="entry-meta mt-4 pt-3 border-top">
                     <small class="text-muted">
-                        Создано: {{ entry.created_at|date:"d.m.Y H:i" }}<br>
+                        <i class="fas fa-calendar-plus me-1"></i>Создано: {{ entry.created_at|date:"d.m.Y H:i" }}<br>
                         {% if entry.updated_at != entry.created_at %}
-                        Обновлено: {{ entry.updated_at|date:"d.m.Y H:i" }}
+                        <i class="fas fa-edit me-1"></i>Обновлено: {{ entry.updated_at|date:"d.m.Y H:i" }}
                         {% endif %}
                     </small>
                 </div>
@@ -32,14 +70,49 @@
             <div class="card-footer">
                 <div class="d-flex justify-content-between">
                     <a href="{% url 'diary:entry_list' %}" class="btn btn-secondary">
-                        ← Назад к списку
+                        <i class="fas fa-arrow-left me-1"></i>Назад к списку
                     </a>
                     <div>
-                        <a href="{% url 'diary:entry_update' entry.pk %}" class="btn btn-primary">Редактировать</a>
+                        <a href="{% url 'diary:entry_update' entry.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i>Редактировать
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для просмотра изображения -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Просмотр изображения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+</script>
+
+<style>
+.entry-images .card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}
