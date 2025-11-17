@@ -1,10 +1,11 @@
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.conf import settings
-from django.urls import reverse
-from planner.models import Notification
 import logging
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template import TemplateDoesNotExist
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +34,15 @@ class EmailNotificationService:
 
             # Контекст для шаблона
             context = {
-                'user': user,
-                'notification': notification,
-                'task': task,
-                'task_url': task_url,
-                'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
+                "user": user,
+                "notification": notification,
+                "task": task,
+                "task_url": task_url,
+                "site_url": getattr(settings, "SITE_URL", "http://localhost:8000"),
             }
 
             # HTML версия письма
-            html_content = render_to_string('planner/emails/task_notification.html', context)
+            html_content = render_to_string("planner/emails/task_notification.html", context)
 
             # Текстовая версия письма
             text_content = strip_tags(html_content)
@@ -50,9 +51,9 @@ class EmailNotificationService:
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=text_content,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'),
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
                 to=[user.email],
-                reply_to=[getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com')]
+                reply_to=[getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com")],
             )
 
             # Добавляем HTML версию
@@ -77,24 +78,40 @@ class EmailNotificationService:
         """Отправляет ежедневный дайджест уведомлений"""
         try:
             if not user.email:
+                logger.warning(f"У пользователя {user.username} не указан email")
                 return False
+
+            logger.info(f"Отправка дайджеста для {user.email}, уведомлений: {len(notifications)}")
 
             subject = "📅 Ежедневный дайджест задач - Личные записульки"
 
             context = {
-                'user': user,
-                'notifications': notifications,
-                'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
+                "user": user,
+                "notifications": notifications,
+                "site_url": getattr(settings, "SITE_URL", "http://localhost:8000"),
             }
 
-            html_content = render_to_string('planner/emails/daily_digest.html', context)
+            # Проверяем существование шаблона
+            try:
+                html_content = render_to_string("planner/emails/daily_digest.html", context)
+            except TemplateDoesNotExist:
+                logger.error("Шаблон planner/emails/daily_digest.html не найден")
+                # Создаем простой текстовый контент
+                html_content = f"""
+                    <h2>Ежедневный дайджест</h2>
+                    <p>У вас {len(notifications)} уведомлений за последние 24 часа:</p>
+                    <ul>
+                    {"".join([f'<li>{n.title}: {n.message}</li>' for n in notifications])}
+                    </ul>
+                    """
+
             text_content = strip_tags(html_content)
 
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=text_content,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'),
-                to=[user.email]
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
+                to=[user.email],
             )
 
             email.attach_alternative(html_content, "text/html")
@@ -104,5 +121,5 @@ class EmailNotificationService:
             return True
 
         except Exception as e:
-            logger.error(f"❌ Ошибка отправки дайджеста для {user.username}: {str(e)}")
+            logger.error(f"❌ Ошибка отправки дайджеста для {user.username if user else 'None'}: {str(e)}")
             return False
