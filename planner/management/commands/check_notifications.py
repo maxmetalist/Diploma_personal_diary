@@ -73,9 +73,9 @@ class Command(BaseCommand):
                 should_notify = True
 
             elif (
-                task.notification_setting == "at_time" and
-                task.custom_notification_time and
-                abs((task.custom_notification_time - now).total_seconds()) <= 300
+                task.notification_setting == "at_time"
+                and task.custom_notification_time
+                and abs((task.custom_notification_time - now).total_seconds()) <= 300
             ):  # ±5 минут
                 message = f'Напоминание: дедлайн по задаче "{task.title}"'
                 should_notify = True

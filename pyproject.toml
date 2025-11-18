@@ -46,7 +46,7 @@ coverage = "^7.11.0"
 
 [tool.black]
 line-length = 119
-exclude = ['.git', 'planner/views']
+exclude = '.git, planner/views'
 
 [tool.mypy]
 line-length = 119

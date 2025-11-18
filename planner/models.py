@@ -299,9 +299,9 @@ class Task(models.Model):
         # Обработка уведомлений при изменении даты выполнения или настроек уведомлений
         if not is_new and old_task:
             if (
-                self.due_date != old_task.due_date or
-                self.notification_setting != old_task.notification_setting or
-                self.custom_notification_time != old_task.custom_notification_time
+                self.due_date != old_task.due_date
+                or self.notification_setting != old_task.notification_setting
+                or self.custom_notification_time != old_task.custom_notification_time
             ):
                 # Удаляем старые уведомления по этой задаче
                 self.notifications.filter(notification_type="deadline").delete()
