@@ -271,5 +271,6 @@ def delete_media(request, pk):
 
     return JsonResponse({"success": False, "error": "Неверный запрос"})
 
+
 def health_check(request):
     return JsonResponse({"status": "healthy", "service": "config"})

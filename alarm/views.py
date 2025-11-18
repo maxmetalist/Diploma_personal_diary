@@ -217,5 +217,6 @@ def debug_alarms(request):
     return JsonResponse({'error': 'Not authenticated'})
 """
 
+
 def health_check(request):
     return JsonResponse({"status": "healthy", "service": "config"})
