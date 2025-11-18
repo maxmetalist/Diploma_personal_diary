@@ -63,8 +63,8 @@ jobs:
 
     - name: Run linters
       run: |
-        poetry run flake8 . --count --show-source --statistics --max-line-length=119 --extend-ignore=E203
-        poetry run black . --check --diff
+        poetry run flake8 . --count --show-source --statistics --max-line-length=119
+        poetry run black . --check
         poetry run isort . --check-only --diff
 
     - name: Run security checks
