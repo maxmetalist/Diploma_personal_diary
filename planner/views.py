@@ -204,7 +204,7 @@ class NotificationView(LoginRequiredMixin, View):
             # Сортировка и ограничение
             notifications = notifications.select_related("task").order_by("-created_at")
             total_count = notifications.count()
-            notifications = notifications[offset: offset + limit]
+            notifications = notifications[offset : offset + limit]
 
             # Сериализация данных
             notifications_data = []

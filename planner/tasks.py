@@ -7,14 +7,14 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-@shared_task(name='planner.tasks.test_celery_task')
+@shared_task(name="planner.tasks.test_celery_task")
 def test_celery_task():
     """Тестовая задача для проверки Celery"""
     logger.info("✅ Celery тестовая задача выполнена!")
     return "Celery работает!"
 
 
-@shared_task(name='planner.tasks.check_notifications')
+@shared_task(name="planner.tasks.check_notifications")
 def check_notifications_task():
     """Фоновая задача для проверки уведомлений"""
     try:
@@ -27,7 +27,7 @@ def check_notifications_task():
         return f"Ошибка: {e}"
 
 
-@shared_task(name='planner.tasks.send_daily_digest')
+@shared_task(name="planner.tasks.send_daily_digest")
 def send_daily_digest_task():
     """Фоновая задача для отправки ежедневного дайджеста"""
     try:

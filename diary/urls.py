@@ -1,7 +1,16 @@
 from django.urls import path
 
-from diary.views import (EntryCreateView, EntryDeleteView, EntryDetailView, EntryListView, EntryUpdateView,
-                         delete_media, load_entries_ajax, upload_media, health_check)
+from diary.views import (
+    EntryCreateView,
+    EntryDeleteView,
+    EntryDetailView,
+    EntryListView,
+    EntryUpdateView,
+    delete_media,
+    load_entries_ajax,
+    upload_media,
+    health_check,
+)
 
 app_name = "diary"
 
@@ -14,5 +23,5 @@ urlpatterns = [
     path("upload-media/", upload_media, name="upload_media"),
     path("media/<int:pk>/delete/", delete_media, name="delete_media"),
     path("entries/ajax/", load_entries_ajax, name="entries_ajax"),
-    path('health/', health_check, name='health_check'),
+    path("health/", health_check, name="health_check"),
 ]

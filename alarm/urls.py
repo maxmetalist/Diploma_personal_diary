@@ -1,7 +1,17 @@
 from django.urls import path
 
-from alarm.views import (AlarmClockView, AlarmCreateView, AlarmDeleteView, AlarmDetailView, AlarmListView,
-                         AlarmUpdateView, alarm_ring, alarm_stop, check_active_alarms, health_check)
+from alarm.views import (
+    AlarmClockView,
+    AlarmCreateView,
+    AlarmDeleteView,
+    AlarmDetailView,
+    AlarmListView,
+    AlarmUpdateView,
+    alarm_ring,
+    alarm_stop,
+    check_active_alarms,
+    health_check,
+)
 
 app_name = "alarm"
 
@@ -19,5 +29,5 @@ urlpatterns = [
     # path('test-check/', test_alarm_check, name='test_alarm_check'),
     # path('<int:pk>/force-ring/', force_ring_alarm, name='force_ring_alarm'),
     # path('debug/', debug_alarms, name='debug_alarms'),
-    path('health/', health_check, name='health_check'),
+    path("health/", health_check, name="health_check"),
 ]
