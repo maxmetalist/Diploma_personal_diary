@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 
@@ -39,3 +40,6 @@ class ProfileEditView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs["instance"] = self.request.user
         return kwargs
+
+def health_check(request):
+    return JsonResponse({"status": "healthy", "service": "config"})

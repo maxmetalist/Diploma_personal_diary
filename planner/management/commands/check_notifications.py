@@ -147,13 +147,13 @@ class Command(BaseCommand):
         # Итоги
         self.stdout.write("\n" + "=" * 50)
         if test_mode:
-            self.stdout.write(self.style.SUCCESS(f"🧪 ТЕСТ: Было бы создано {created_count} уведомлений"))
+            self.stdout.write(self.style.SUCCESS(f"ТЕСТ: Было бы создано {created_count} уведомлений"))
             if send_email:
-                self.stdout.write(self.style.WARNING(f"📧 В тестовом режиме email не отправляются"))
+                self.stdout.write(self.style.WARNING("В тестовом режиме email не отправляются"))
         else:
-            self.stdout.write(self.style.SUCCESS(f"📝 Создано {created_count} новых уведомлений"))
+            self.stdout.write(self.style.SUCCESS(f"Создано {created_count} новых уведомлений"))
             if send_email:
-                self.stdout.write(self.style.SUCCESS(f"📤 Отправлено {email_count} email уведомлений"))
+                self.stdout.write(self.style.SUCCESS(f"Отправлено {email_count} email уведомлений"))
 
     def send_notification_emails(self, notifications):
         """Отправляет email уведомления"""

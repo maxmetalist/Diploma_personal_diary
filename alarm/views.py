@@ -7,6 +7,8 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, T
 from alarm.forms import AlarmForm
 from alarm.models import Alarm
 
+# from alarm.tasks import check_alarms_task, trigger_alarm_task
+
 
 class AlarmClockView(LoginRequiredMixin, TemplateView):
     """Контроллер для главной страницы будильника"""
@@ -104,32 +106,57 @@ class AlarmDetailView(LoginRequiredMixin, DetailView):
 
 def check_active_alarms(request):
     """Проверяет активные будильники для текущего пользователя"""
-    if request.user.is_authenticated:
-        print(f"🔍 Проверка будильников для пользователя: {request.user}")
+    try:
+        if request.user.is_authenticated:
+            from django.utils import timezone
 
-        active_alarms = Alarm.objects.filter(user=request.user, is_active=True)
+            print("\n" + "=" * 50)
+            print(f" 🔍 ПРОВЕРКА БУДИЛЬНИКОВ ДЛЯ: {request.user}")
+            print(f" ⏰ ТЕКУЩЕЕ ВРЕМЯ СЕРВЕРА: {timezone.now()}")
+            print(f" 📅 ТЕКУЩАЯ ДАТА: {timezone.now().date()}")
+            print(f" 📆 ДЕНЬ НЕДЕЛИ: {timezone.now().weekday()}")
+            print("=" * 50)
 
-        print(f"📋 Найдено активных будильников: {active_alarms.count()}")
+            active_alarms = Alarm.objects.filter(user=request.user, is_active=True)
+            # print(f"📋 НАЙДЕНО АКТИВНЫХ БУДИЛЬНИКОВ: {active_alarms.count()}")
 
-        ringing_alarms = []
-        for alarm in active_alarms:
-            if alarm.should_ring_now():
-                print(f"🎯 Будильник {alarm.name} должен звонить!")
-                ringing_alarms.append(
-                    {
-                        "id": alarm.id,
-                        "name": alarm.name,
-                        "reminder_text": alarm.reminder_text,
-                        "sound_url": alarm.get_sound_url(),
-                    }
-                )
-            else:
-                print(f"❌ Будильник {alarm.name} не должен звонить")
+            for alarm in active_alarms:
+                print(f"\n--- БУДИЛЬНИК: {alarm.name} ---")
+                print(f"   Время: {alarm.alarm_time}")
+                print(f"   Повторяющийся: {alarm.is_recurring}")
+                print(f"   Дни недели: {alarm.days_of_week}")
+                print(f"   Дата создания: {alarm.created_at.date()}")
 
-        print(f"🎊 Итого сработавших будильников: {len(ringing_alarms)}")
-        return JsonResponse({"ringing_alarms": ringing_alarms})
+            ringing_alarms = []
+            for alarm in active_alarms:
+                print(f"\n🔔 ПРОВЕРЯЕМ: {alarm.name}")
+                should_ring = alarm.should_ring_now()
+                print(f"🎯 РЕЗУЛЬТАТ: {should_ring}")
 
-    return JsonResponse({"ringing_alarms": []})
+                if should_ring:
+                    # print(f"🚨 БУДИЛЬНИК ДОЛЖЕН ЗВОНИТЬ!")
+                    ringing_alarms.append(
+                        {
+                            "id": alarm.id,
+                            "name": alarm.name,
+                            "reminder_text": alarm.reminder_text,
+                            "sound_url": "/static/alarm_sounds/classic.mp3",
+                        }
+                    )
+
+            print(f"\n🎊 ИТОГО СРАБОТАВШИХ: {len(ringing_alarms)}")
+            print("=" * 50 + "\n")
+
+            return JsonResponse({"ringing_alarms": ringing_alarms})
+
+        return JsonResponse({"ringing_alarms": []})
+
+    except Exception as e:
+        print(f"❌ ОШИБКА: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return JsonResponse({"ringing_alarms": [], "error": str(e)})
 
 
 def alarm_stop(request, pk):
@@ -147,3 +174,48 @@ def alarm_ring(request, pk):
     """Страница срабатывания будильника"""
     alarm = get_object_or_404(Alarm, pk=pk, user=request.user)
     return render(request, "alarm/alarm_ring.html", {"alarm": alarm})
+
+
+"""
+def test_alarm_check(request):
+    # Ручной запуск проверки будильников (для тестирования)
+    if request.user.is_superuser:
+        result = check_alarms_task.delay()
+        return JsonResponse({"status": "Задача запущена", "task_id": result.id})
+    return JsonResponse({"status": "Доступ запрещен"})
+
+def force_ring_alarm(request, pk):
+    # Принудительное срабатывание будильника (для тестирования)
+    if request.user.is_superuser:
+        result = trigger_alarm_task.delay(pk)
+        return JsonResponse({"status": "Будильник запущен", "task_id": result.id})
+    return JsonResponse({"status": "Доступ запрещен"})
+
+
+def debug_alarms(request):
+    # Страница отладки будильников
+    if request.user.is_authenticated:
+        alarms = Alarm.objects.filter(user=request.user)
+
+        debug_info = []
+        for alarm in alarms:
+            debug_info.append({
+                'id': alarm.id,
+                'name': alarm.name,
+                'alarm_time': alarm.alarm_time,
+                'is_active': alarm.is_active,
+                'is_recurring': alarm.is_recurring,
+                'days_of_week': alarm.days_of_week,
+                'created_at': alarm.created_at,
+            })
+
+        return JsonResponse({
+            'user': str(request.user),
+            'current_time': timezone.now().isoformat(),
+            'alarms': debug_info
+        })
+    return JsonResponse({'error': 'Not authenticated'})
+"""
+
+def health_check(request):
+    return JsonResponse({"status": "healthy", "service": "config"})

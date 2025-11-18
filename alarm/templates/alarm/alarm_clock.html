@@ -32,14 +32,48 @@
                     <p>Функционал будильника в разработке...</p>
                     <p>Скоро здесь появятся:</p>
                     <ul>
-                        <li>Установка и настройка будильников</li>
-                        <li>Повторяющиеся напоминания</li>
                         <li>Таймеры и секундомер</li>
                         <li>Голосовые уведомления</li>
+                        <li>Я пока не успеваю запилить такие плюшки,
+                            так что это на будущее</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+document.getElementById('test-alarm-check').addEventListener('click', function() {
+    console.log("🔄 Запрос проверки будильников...");
+
+    fetch('{% url "alarm:check_alarms" %}')
+        .then(response => {
+            console.log("📞 Ответ получен, статус:", response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("📊 Данные получены:", data);
+            const statusDiv = document.getElementById('alarm-status');
+
+            if (data.error) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">❌ Ошибка: ${data.error}</div>`;
+            } else if (data.ringing_alarms && data.ringing_alarms.length > 0) {
+                statusDiv.innerHTML = `<div class="alert alert-success">🎊 Сработало будильников: ${data.ringing_alarms.length}</div>`;
+                // Перенаправляем на страницу срабатывания первого будильника
+                window.location.href = '{% url "alarm:alarm_ring" 0 %}'.replace('0', data.ringing_alarms[0].id);
+            } else {
+                statusDiv.innerHTML = '<div class="alert alert-info">⏰ Активных будильников нет</div>';
+            }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка:', error);
+            document.getElementById('alarm-status').innerHTML =
+                `<div class="alert alert-danger">❌ Ошибка запроса: ${error.message}</div>`;
+        });
+});
+</script>
+
 {% endblock %}

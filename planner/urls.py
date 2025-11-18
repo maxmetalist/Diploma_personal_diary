@@ -2,7 +2,7 @@ from django.urls import path
 
 from planner.api import tasks_by_date
 from planner.views import (CalendarView, NotificationPreferenceView, NotificationView, PlanningView, TaskCreateView,
-                           TaskDeleteView, TaskListView, TaskUpdateView)
+                           TaskDeleteView, TaskListView, TaskUpdateView, health_check)
 
 app_name = "planner"
 
@@ -19,4 +19,6 @@ urlpatterns = [
     # Уведомления
     path("api/notifications/", NotificationView.as_view(), name="notifications_api"),
     path("api/notification-preferences/", NotificationPreferenceView.as_view(), name="notification_preferences_api"),
+    # Health-check для контейнеризации
+    path('health/', health_check, name='health_check'),
 ]

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -270,3 +270,6 @@ def delete_media(request, pk):
             return JsonResponse({"success": False, "error": str(e)})
 
     return JsonResponse({"success": False, "error": "Неверный запрос"})
+
+def health_check(request):
+    return JsonResponse({"status": "healthy", "service": "config"})

@@ -20,7 +20,7 @@ class Command(BaseCommand):
                     url = sound.file.url
                     self.stdout.write(f"      URL: {url}")
                 except ValueError:
-                    self.stdout.write(f"      ❌ Ошибка получения URL")
+                    self.stdout.write("❌ Ошибка получения URL")
 
         self.stdout.write("\n🔍 Проверка будильников...")
         alarms = Alarm.objects.all()[:5]  # Первые 5 для примера
