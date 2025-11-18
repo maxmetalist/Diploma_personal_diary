@@ -1,6 +1,6 @@
 from django.urls import path
 
-from users.views import CustomLoginView, CustomLogoutView, ProfileEditView, SignUpView
+from users.views import CustomLoginView, CustomLogoutView, ProfileEditView, SignUpView, health_check
 
 app_name = "users"
 
@@ -9,4 +9,6 @@ urlpatterns = [
     path("login/", CustomLoginView.as_view(template_name="users/registration/login.html"), name="login"),
     path("logout/", CustomLogoutView.as_view(next_page="home"), name="logout"),
     path("profile/edit/", ProfileEditView.as_view(), name="profile_edit"),
+    # Health_check для контейнеризации
+    path('health/', health_check, name='health_check'),
 ]

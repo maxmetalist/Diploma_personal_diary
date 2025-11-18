@@ -1,9 +1,8 @@
-# management/commands/create_test_digest.py
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from planner.models import Notification, Task
+from planner.models import Notification
 
 User = get_user_model()
 

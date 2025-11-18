@@ -17,7 +17,8 @@ class Command(BaseCommand):
         try:
             send_mail(
                 "✅ Тестовое письмо из Личных записулек",
-                "Это тестовое письмо для проверки работы email системы.\n\nЕсли вы получили это письмо, значит email система работает корректно!",
+                "Это тестовое письмо для проверки работы email системы."
+                "\n\nЕсли вы получили это письмо, значит email система работает корректно!",
                 getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
                 [test_email],
                 fail_silently=False,

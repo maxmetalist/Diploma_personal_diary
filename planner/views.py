@@ -99,8 +99,9 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         if due_date:
             try:
                 initial["due_date"] = due_date.replace("T", " ") + ":00"
-            except:
-                pass
+            except Exception as e:
+                print(f"Обнаружена ошибка {e}")
+
         return initial
 
     def form_valid(self, form):
@@ -203,7 +204,7 @@ class NotificationView(LoginRequiredMixin, View):
             # Сортировка и ограничение
             notifications = notifications.select_related("task").order_by("-created_at")
             total_count = notifications.count()
-            notifications = notifications[offset : offset + limit]
+            notifications = notifications[offset: offset + limit]
 
             # Сериализация данных
             notifications_data = []
@@ -342,3 +343,6 @@ class NotificationPreferenceView(LoginRequiredMixin, View):
 
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
+
+def health_check(request):
+    return JsonResponse({"status": "healthy", "service": "config"})

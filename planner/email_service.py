@@ -30,7 +30,10 @@ class EmailNotificationService:
             # URL для задачи
             task_url = ""
             if task:
-                task_url = f"{getattr(settings, 'SITE_URL', 'http://localhost:8000')}{reverse('planner:task_update', kwargs={'pk': task.id})}"
+                task_url = (
+                    f"{getattr(settings, 'SITE_URL', 'http://localhost:8000')}"
+                    f"{reverse('planner:task_update', kwargs={'pk': task.id})}"
+                )
 
             # Контекст для шаблона
             context = {

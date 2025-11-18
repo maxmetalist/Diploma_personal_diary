@@ -75,15 +75,23 @@ class Alarm(models.Model):
 
     def get_sound_url(self):
         """Возвращает URL звукового файла"""
-        # Сначала пробуем получить URL из FileField
-        if self.file and self.file.name:
+        # Сначала проверяем пользовательскую мелодию
+        if self.custom_sound and self.custom_sound.name:
             try:
-                return self.file.url
+                return self.custom_sound.url
             except ValueError:
                 # Файл не существует в хранилище
                 pass
 
-        # Если файла нет в FileField, ищем статический файл по названию
+        # Затем проверяем стандартную мелодию
+        if self.sound and self.sound.file:
+            try:
+                return self.sound.file.url
+            except ValueError:
+                # Файл не существует в хранилище
+                pass
+
+        # Запасной вариант - статические файлы
         filename_mapping = {
             "Классический будильник": "classic.mp3",
             "Птички": "crowing.wav",
@@ -93,11 +101,11 @@ class Alarm(models.Model):
             "Электронный 2": "electronic1.mp3",
         }
 
-        filename = filename_mapping.get(self.name)
+        filename = filename_mapping.get(self.sound.name if self.sound else "")
         if filename:
             return f"/static/alarm_sounds/{filename}"
 
-        # Запасной вариант
+        # Последний запасной вариант
         return "/static/alarm_sounds/classic.mp3"
 
     def get_days_display(self):
@@ -131,24 +139,17 @@ class Alarm(models.Model):
             # Для однократного будильника проверяем дату создания
             return self.created_at.date() == timezone.now().date()
 
-    def should_ring_now(self, tolerance_minutes=2):
-        """Проверяет, должно ли время будильника совпадать с текущим"""
+    def should_ring_now(self, tolerance_minutes=10):
+        """Упрощенная проверка для тестирования"""
+
+        from django.utils import timezone
+
         now = timezone.now()
         current_time = now.time()
-
-        # Отладочная информация
-        print(f"🔔 Проверка будильника '{self.name}':")
-        print(f"   Текущее время: {current_time}")
-        print(f"   Время будильника: {self.alarm_time}")
-        print(f"   Активен: {self.is_active}")
-        print(f"   Повторяющийся: {self.is_recurring}")
-        if self.is_recurring:
-            print(f"   Дни недели: {self.days_of_week}")
-            print(f"   Текущий день: {now.weekday()}")
+        current_weekday = now.weekday()
 
         # Основные проверки
         if not self.is_active:
-            print("   ❌ Будильник не активен")
             return False
 
         # Проверка времени с допуском
@@ -156,19 +157,19 @@ class Alarm(models.Model):
         current_minutes = current_time.hour * 60 + current_time.minute
         time_diff = abs(current_minutes - alarm_minutes)
 
-        print(f"   ⏰ Разница во времени: {time_diff} мин (допуск: {tolerance_minutes} мин)")
-
         if time_diff > tolerance_minutes:
-            print("   ❌ Время не совпадает")
             return False
 
         # Проверка дней недели для повторяющихся будильников
-        if self.is_recurring and self.days_of_week:
-            current_weekday = now.weekday()
-            should_ring = current_weekday in self.days_of_week
-            print(f"   📅 Проверка дней: текущий {current_weekday}, должен звонить: {should_ring}")
-            return should_ring
-
-        # Для однократных будильников
-        print("   ✅ Будильник должен звонить!")
-        return True
+        if self.is_recurring:
+            if not self.days_of_week:
+                return False
+            # Преобразуем все дни в int для сравнения
+            try:
+                days_int = [int(day) for day in self.days_of_week]
+                return current_weekday in days_int
+            except (ValueError, TypeError):
+                return False
+        else:
+            # Для однократных будильников проверяем дату создания
+            return self.created_at.date() == now.date()
