@@ -1,5 +1,7 @@
 # django setiings
-SECRET_KEY=your_long_like_fucking_life_django_secure_secret_key
+SECRET_KEY=your_long_as_all_fucking_troubles_django_secure_secret_key
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0 # Или ваша локалка, если запуск по локалке
+DEBUG=True # Для локалки True, для продакта False (Изменить на False eщё в settings.py при развёртке на удаленке)
 
 # database settings
 DATABASE_NAME=your_database_name
@@ -7,3 +9,15 @@ DATABASE_USER=your_database_user
 DATABASE_PASSWORD=your_database_pass
 DATABASE_HOST=your_database_host (localhost in default)
 DATABASE_PORT=your_database_port (5432 in default)
+
+# Redis
+REDIS_URL=redis://redis:6379/0 # или где там у вас redis запущен и что слушает
+
+# Настройки Email
+EMAIL_HOST=smtp.mail.ru
+EMAIL_PORT=587 # Это для mail.ru
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+EMAIL_HOST_USER=your_user_email_address
+EMAIL_HOST_PASSWORD=your_app_pass_in_email_not_of_account
+DEFAULT_FROM_EMAIL=email_address_from_notifications_will_be_sent
