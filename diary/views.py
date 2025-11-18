@@ -198,7 +198,7 @@ def load_entries_ajax(request):
 
             # Сортировка и пагинация
             entries = entries.order_by("-created_at")
-            paginator = Paginator(entries, 10)
+            paginator = Paginator(entries, 9)
             page_obj = paginator.get_page(page_number)
 
             # Рендерим частичный шаблон

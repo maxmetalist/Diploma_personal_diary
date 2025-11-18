@@ -1,5 +1,5 @@
 [project]
-name = "pythonproject12"
+name = "personal-diary"
 version = "0.1.0"
 description = "Application for personal diary and planning"
 authors = [
