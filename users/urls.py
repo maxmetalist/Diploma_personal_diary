@@ -10,5 +10,5 @@ urlpatterns = [
     path("logout/", CustomLogoutView.as_view(next_page="home"), name="logout"),
     path("profile/edit/", ProfileEditView.as_view(), name="profile_edit"),
     # Health_check для контейнеризации
-    path('health/', health_check, name='health_check'),
+    path("health/", health_check, name="health_check"),
 ]

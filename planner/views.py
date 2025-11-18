@@ -344,5 +344,6 @@ class NotificationPreferenceView(LoginRequiredMixin, View):
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
 
+
 def health_check(request):
     return JsonResponse({"status": "healthy", "service": "config"})

@@ -41,5 +41,6 @@ class ProfileEditView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         kwargs["instance"] = self.request.user
         return kwargs
 
+
 def health_check(request):
     return JsonResponse({"status": "healthy", "service": "config"})
