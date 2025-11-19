@@ -2,14 +2,14 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, feature_deploy]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+  DATABASE_URL: postgresql://postgres:1001@localhost:5432/diary
   REDIS_URL: redis://localhost:6379/0
 
 jobs:
@@ -64,11 +64,6 @@ jobs:
     - name: Run linters
       run: |
         poetry run flake8 . --count --show-source --statistics --max-line-length=119
-
-    - name: Run security checks
-      run: |
-        poetry run bandit -r . -f json -o bandit-report.json || true
-        poetry run safety check --json > safety-report.json || true
 
     - name: Run tests
       env:
@@ -200,4 +195,50 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           cd /opt/diploma_personal_diary
-          bash .github/workflows/deploy.sh ${{ github.sha }}
+          
+          # Определяем ветку
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            BRANCH="main"
+          else
+            BRANCH="develop"
+          fi
+
+          echo "Deploying branch: $BRANCH"
+
+          # Получаем последние изменения
+          git fetch origin
+          git checkout $BRANCH
+          git reset --hard origin/$BRANCH
+
+          # Активируем виртуальное окружение
+          source venv/bin/activate
+
+          # Устанавливаем/обновляем зависимости
+          pip install poetry
+          poetry install --without dev --no-root
+
+          # Применяем миграции
+          python manage.py migrate
+
+          # Собираем статику
+          python manage.py collectstatic --noinput
+
+          # Перезапускаем сервисы
+          sudo systemctl daemon-reload
+          sudo systemctl restart diary
+          sudo systemctl restart celery
+          sudo systemctl restart celery-beat
+
+          echo "Deployment completed successfully for branch: $BRANCH"
+
+    - name: Verify deployment
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          echo "Verifying deployment..."
+          sudo systemctl status diary | head -5
+          sudo systemctl status celery | head -5
+          curl -f http://localhost:8000/ && echo "Application is running successfully!"
