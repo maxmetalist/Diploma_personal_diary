@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+env:
+  REDIS_URL: redis://localhost:6379/0
+
 jobs:
   # Тестирование и линтинг
   test-and-lint:
@@ -111,6 +114,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Debug info
+      run: |
+        echo "Event: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'develop' }}"
+        echo "SERVER_HOST: ${{ secrets.SERVER_HOST != '' && 'SET' || 'NOT SET' }}"
+        echo "SERVER_USER: ${{ secrets.SERVER_USER != '' && 'SET' || 'NOT SET' }}"
+        echo "SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY != '' && 'SET' || 'NOT SET' }}"
+
     - name: Deploy to production
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -128,6 +140,9 @@ jobs:
           fi
 
           echo "Deploying branch: $BRANCH"
+          echo "Current directory: $(pwd)"
+          echo "Git status:"
+          git status
 
           # Получаем последние изменения
           git fetch origin
@@ -163,6 +178,6 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           echo "Verifying deployment..."
-          sudo systemctl status diary | head -5
-          sudo systemctl status celery | head -5
+          sudo systemctl status diary | head -10
+          sudo systemctl status celery | head -10
           curl -f http://localhost:8000/ && echo "Application is running successfully!"
