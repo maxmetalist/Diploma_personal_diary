@@ -6,12 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-env:
-  DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: maxmetalist/diploma-personal-diary
-  DATABASE_URL: postgresql://postgres:1001@localhost:5432/diary
-  REDIS_URL: redis://localhost:6379/0
-
 jobs:
   # Тестирование и линтинг
   test-and-lint:
