@@ -79,4 +79,234 @@
     Также можно установить мелодию будильника из стандартных, имеющихся в папке
     media/ или загрузить свои с компа. Для загрузки новой мелодии нужно скачать мелодию
     и инициализировать ее в приложение командой python manage.py create_default_sound.
+
+## Приложение users
+    Всё просто. Здесь набор моделей, контроллеров и шаблонов для регистрации и работы
+    юзера аккаунтом. Акк можно регать, редактировать, удалять, естественно только свой.
+
+## База
+    Папка templates содержит базовый шаблон для всег проекта. Папка static в корне проекта
+    содержит основные стили проекта и стили боковой панели.
+    В боковой панели распложено окно инфосмации о пользователе, изображение аватара,
+    сетевой статус. Ниже идут навигационные кнопки:
+    1. Домашняя 
+    2. Дневник
+    3. Планинг
+    4. Будильник
+    Далее расположен переключатель темы (светлая/тёмная)
+    Внизу расположен блок аккаунта, при нажатии на кнопку акка у аторизованного юзера
+    появляется кнопка выхода и редакторования акка, у неавторизованного - кнопки входа
+    и регистрации.
+
+## Приложение diary
+    Основное тематическое приложение проекта. В нём содержатся основные шаблоны и стили
+    проекта с анимашками. Домашняя страница так же в этом модуле.С домашней страницы
+    кнопка "Перейти к дневнику" переводит на главную страницу дневника. Кнопка "Создать
+    запись" переводит сразу на форму заполнения записи в дневнике. В приложении дневника
+    авторизованный юзер может создавать записи, добавлять к ним изображения и аудиофайлы.
+
+    Для этого:
+    1. Нажать кнопку "выбрать файлы" в одном из модальных окон
+    2. Выбрать файлы изображений или аудиофайлы на своей машине
+    3. Нажать зелёную кнопку "Загрузить файлы"
+
+    Загруженные файлы отобразятся в нижнем модальном окне "Мои медиафайлы".
+    Посмотреть записи можно нажав кнопку "Мои записи". При этом на главную страницу
+    дневника рендерится список записей юзера. Для выбора записи настроена фильтрация
+    через AJAX по названию записи и по периоду создания. ВЫвод осуществляется с
+    пагинацией по 9 штук на страницу.
+
+    Справа расположено окно статистики с указанием количества загруженных медиафайлов,
+    описанием последних пяти действий юзера и кнопками быстрого действия.
+
+Далее идут расширения
+
+## Приложение planner
+    Самое объёмнное. Юзер может создавать, редактировать и удалять задачи. Просмотр задач
+    На кнопке "Мои задачи" или через интегрированный календарь. Соответсвенно, фильры поиска
+    задач настроены по названию, дате создания, дате дедлайна, приоритету, статусу исполнения.
+    Проверка задач проходит с помощью Celery. Для этого реализованы фоновые задачи
+    проверки уведомлений, теста Celery, отправки ежедневного дайджеста с запущенными задачами.
+    Проведение теста Celery:
+    1. Поставить DEBUG=True
+    2. Создать задачу в итерфейсе или админке
+    3. Проверить работу Celery командой
+
+    python manage.py test_celery_planner
+
+    4. Создать тестовые уведомления командой 
     
+    python manage.py create_test_digest
+
+    5. Проверить отправку уведомлений командой
+    
+    python manage.py test_email Отправка уведомления на тестовую почту
+
+    Для отправки на реальную почту:
+    1. DEBUG=False
+    2. Создать задачу
+    3. Проверить уведомления и отправить командой
+    python manage.py check_notifications --email -your_real_email
+    4. Отправить дайджест командой
+    python manage.py send_daily_digest --email -your_real_email
+
+## Приложение alarm
+    Пока запилена только возможность создавать, удалять, редактировать.
+    Срабатывают будильники по UTS времени. Поэтому для проверки учитывайте серверное
+    время, а не локальное. Для срабаиывания будильников наделаны задачи проверки,
+    которые запускаются через Celery для автоматического исполнения. Юзер при
+    создании будильника может установить повторение срабатывания по дням недели и месяца.
+    Также можно установить мелодию будильника из стандартных, имеющихся в папке
+    media/ или загрузить свои с компа. Для загрузки новой мелодии нужно скачать мелодию
+    и инициализировать ее в приложение командой python manage.py create_default_sound.
+## Подключение к серверу
+    Пользователь для подключения к серверу masyama. Команда ssh masyama@158.160.70.151
+
+### Обновите систему
+sudo apt update && sudo apt upgrade -y
+
+# Установите базовые пакеты
+sudo apt install -y curl wget git htop nginx postgresql redis-server python3-pip python3-venv
+## Настройка окружения
+Создайте пользователя для приложения:
+### Создайте пользователя
+sudo useradd -m -s /bin/bash ваш юзер
+sudo passwd ваш пароль
+sudo usermod -aG sudo diary ваш юзер
+
+### Переключитесь на пользователя
+sudo su - ваш юзер
+Настройка рабочей директории:
+bash
+mkdir -p /opt/diploma_personal_diary # создание директории
+cd /opt/diploma_personal_diary  # переход в директорию 
+## Настройка базы данных
+sudo -u postgres psql
+
+-- В psql создайте БД и пользователя
+CREATE USER ваш юзер WITH PASSWORD 'ваш пароль'; # мой юзер masyama
+CREATE DATABASE имя БД OWNER ваш юзер; # моя БД diary
+ALTER USER ваш юзер CREATEDB;
+\q
+6. Настройка Nginx
+Создайте конфиг /etc/nginx/sites-available/diary:
+
+nginx
+server {
+    listen 80;
+    server_name ваш-домен.ru www.ваш-домен.ru;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static/ {
+        alias /opt/diploma_personal_diary/static/;
+        expires 30d;
+    }
+
+    location /media/ {
+        alias /opt/diploma_personal_diary/media/;
+        expires 30d;
+    }
+}
+Активируйте конфиг:
+
+sudo ln -s /etc/nginx/sites-available/diary /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx 
+## Настройка системы для деплоя
+Создайте systemd сервисы:
+### Сервис для Gunicorn /etc/systemd/system/diary.service:
+
+ini
+[Unit]
+Description=Diploma Personal Diary Gunicorn
+After=network.target
+
+[Service]
+User=diary
+Group=diary
+WorkingDirectory=/opt/diploma_personal_diary
+Environment="PATH=/opt/diploma_personal_diary/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings.production"
+ExecStart=/opt/diploma_personal_diary/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 config.wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+### Сервис для Celery Worker /etc/systemd/system/celery.service:
+
+ini
+[Unit]
+Description=Diploma Personal Diary Celery Worker
+After=network.target
+
+[Service]
+User=diary
+Group=diary
+WorkingDirectory=/opt/diploma_personal_diary
+Environment="PATH=/opt/diploma_personal_diary/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings.production"
+ExecStart=/opt/diploma_personal_diary/venv/bin/celery -A config worker --loglevel=info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+### Сервис для Celery Beat /etc/systemd/system/celery-beat.service:
+
+ini
+[Unit]
+Description=Diploma Personal Diary Celery Beat
+After=network.target
+
+[Service]
+User=diary
+Group=diary
+WorkingDirectory=/opt/diploma_personal_diary
+Environment="PATH=/opt/diploma_personal_diary/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings.production"
+ExecStart=/opt/diploma_personal_diary/venv/bin/celery -A config beat --loglevel=info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 
+## Настройка GitHub Actions для деплоя
+
+GitHub Secrets которые нужно добавить:
+SERVER_HOST - внешний IP сервера
+
+SERVER_USER - пользователь
+
+SERVER_SSH_KEY - приватный SSH ключ для подключения
+
+## Первоначальный деплой
+### На сервере
+cd /opt/diploma_personal_diary
+git clone https://github.com/maxmetalist/Diploma_personal_diary.git .
+python3 -m venv venv
+source venv/bin/activate
+pip install poetry
+poetry install --no-dev
+
+#### Настройте .env файл с production настройками
+cp .env.example .env
+#### отредактируйте .env с реальными значениями
+
+#### Примените миграции
+python manage.py migrate
+python manage.py collectstatic --noinput
+
+#### Запустите сервисы
+sudo systemctl enable diary celery celery-beat
+sudo systemctl start diary celery celery-beat
+
+# Доступ к приложению
+    Откройте:
+    Главная страница: http://158.160.70.151
+
+    Админка: http://158.160.70.151/admin
