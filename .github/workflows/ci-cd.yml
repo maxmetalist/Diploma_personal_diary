@@ -64,7 +64,7 @@ jobs:
     - name: Run linters
       run: |
         poetry run flake8 . --count --show-source --statistics --max-line-length=119
-        poetry run black . --check
+        poetry run black . --check --max-line-length=119
         poetry run isort . --check-only --diff
 
     - name: Run security checks
