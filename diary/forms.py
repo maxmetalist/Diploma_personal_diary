@@ -1,6 +1,7 @@
 from django import forms
 from diary.models import DiaryEntry, MediaFile
 
+
 class DiaryEntryForm(forms.ModelForm):
     images = forms.ModelMultipleChoiceField(
         queryset=MediaFile.objects.none(),
