@@ -75,7 +75,13 @@ jobs:
         DEBUG: "False"
         SECRET_KEY: "test-secret-key-for-ci"
         ALLOWED_HOSTS: "localhost,127.0.0.1"
-        DATABASE_URL: ${{ env.DATABASE_URL }}
+        # Используем отдельные переменные вместо DATABASE_URL
+        DB_ENGINE: django.db.backends.postgresql
+        DB_NAME: test_db
+        DB_USER: test
+        DB_PASSWORD: test
+        DB_HOST: localhost
+        DB_PORT: 5432
         REDIS_URL: ${{ env.REDIS_URL }}
       run: |
         poetry run python manage.py check
