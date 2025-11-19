@@ -1,5 +1,4 @@
 from django import forms
-
 from diary.models import DiaryEntry, MediaFile
 
 
