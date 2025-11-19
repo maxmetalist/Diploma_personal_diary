@@ -188,11 +188,11 @@ CREATE USER ваш юзер WITH PASSWORD 'ваш пароль'; # мой юзе
 CREATE DATABASE имя БД OWNER ваш юзер; # моя БД diary
 ALTER USER ваш юзер CREATEDB;
 \q
-6. Настройка Nginx
-Создайте конфиг /etc/nginx/sites-available/diary:
+## Настройка Nginx
+    Создайте конфиг /etc/nginx/sites-available/diary:
 
-nginx
-server {
+    nginx
+    server {
     listen 80;
     server_name ваш-домен.ru www.ваш-домен.ru;
 
@@ -213,7 +213,7 @@ server {
         alias /opt/diploma_personal_diary/media/;
         expires 30d;
     }
-}
+    }
 Активируйте конфиг:
 
 sudo ln -s /etc/nginx/sites-available/diary /etc/nginx/sites-enabled/
@@ -295,7 +295,7 @@ poetry install --no-dev
 
 #### Настройте .env файл с production настройками
 cp .env.example .env
-#### отредактируйте .env с реальными значениями
+#### Отредактируйте .env с реальными значениями
 
 #### Примените миграции
 python manage.py migrate
