@@ -197,48 +197,48 @@ jobs:
           cd /opt/diploma_personal_diary
           
           # Определяем ветку
-                    if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-                      BRANCH="main"
-                    else
-                      BRANCH="develop"
-                    fi
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            BRANCH="main"
+          else
+            BRANCH="develop"
+          fi
 
-                    echo "Deploying branch: $BRANCH"
+          echo "Deploying branch: $BRANCH"
 
-                    # Получаем последние изменения
-                    git fetch origin
-                    git checkout $BRANCH
-                    git reset --hard origin/$BRANCH
+          # Получаем последние изменения
+          git fetch origin
+          git checkout $BRANCH
+          git reset --hard origin/$BRANCH
 
-                    # Активируем виртуальное окружение
-                    source venv/bin/activate
+          # Активируем виртуальное окружение
+          source venv/bin/activate
 
-                    # Устанавливаем/обновляем зависимости
-                    pip install poetry
-                    poetry install --without dev --no-root
+          # Устанавливаем/обновляем зависимости
+          pip install poetry
+          poetry install --without dev --no-root
 
-                    # Применяем миграции
-                    python manage.py migrate
+          # Применяем миграции
+          python manage.py migrate
 
-                    # Собираем статику
-                    python manage.py collectstatic --noinput
+          # Собираем статику
+          python manage.py collectstatic --noinput
 
-                    # Перезапускаем сервисы
-                    sudo systemctl daemon-reload
-                    sudo systemctl restart diary
-                    sudo systemctl restart celery
-                    sudo systemctl restart celery-beat
+          # Перезапускаем сервисы
+          sudo systemctl daemon-reload
+          sudo systemctl restart diary
+          sudo systemctl restart celery
+          sudo systemctl restart celery-beat
 
-                    echo "Deployment completed successfully for branch: $BRANCH"
+          echo "Deployment completed successfully for branch: $BRANCH"
 
-              - name: Verify deployment
-                uses: appleboy/ssh-action@v1.0.3
-                with:
-                  host: ${{ secrets.SERVER_HOST }}
-                  username: ${{ secrets.SERVER_USER }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
-                  script: |
-                    echo "Verifying deployment..."
-                    sudo systemctl status diary | head -5
-                    sudo systemctl status celery | head -5
-                    curl -f http://localhost:8000/ && echo "Application is running successfully!"
+    - name: Verify deployment
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          echo "Verifying deployment..."
+          sudo systemctl status diary | head -5
+          sudo systemctl status celery | head -5
+          curl -f http://localhost:8000/ && echo "Application is running successfully!"
